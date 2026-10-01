@@ -118,6 +118,14 @@
   .photo-preview img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #d7e7e4;}
   .service-form input[type="file"]{padding:9px;background:#f7faf9;}
   .rating-summary{margin:12px 0 6px;color:#8a6d00;font-size:.88rem;font-weight:700;}
+  .rating-summary:not(.no-rating-summary)::before{content:"★★★★★";display:inline-block;margin-inline-end:6px;background:linear-gradient(90deg,#d99f00 var(--rating-fill),#cbd3d1 var(--rating-fill));background-clip:text;-webkit-background-clip:text;color:transparent;}
+  .star-rating-field{min-width:0;padding:0;border:0;}
+  .star-rating-field legend{margin-bottom:6px;color:var(--dark);font-size:.88rem;font-weight:600;}
+  .star-rating{display:inline-flex;align-items:center;}
+  .star-rating input{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;}
+  .service-form .star-rating label{display:grid;place-items:center;width:40px;height:40px;border-radius:4px;color:#cbd3d1;font-size:2rem;line-height:1;cursor:pointer;}
+  .star-rating label.is-filled,.star-rating label:hover{color:#d99f00;}
+  .star-rating input:focus-visible+label{outline:3px solid var(--teal);outline-offset:1px;}
   .review-link{padding:0;border:0;background:none;color:var(--teal);font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
   .review-link:hover{text-decoration:underline;}
   .review-list{margin-top:10px;text-align:left;}
@@ -152,6 +160,11 @@
   .auth-disclaimer{margin:10px 0 18px!important;color:#71817f!important;font-size:.78rem!important;}
   .request-confirmation{display:none;margin-top:18px;padding:14px;background:#edf7f4;border-left:4px solid var(--teal);color:var(--teal-dark);font-size:.92rem;}
   .request-confirmation a{display:inline-block;margin-top:8px;color:var(--teal-dark);font-weight:700;}
+  .booking-list{max-height:55vh;overflow:auto;}
+  .booking-entry{padding:16px 0;border-top:1px solid #e2eae8;}
+  .booking-entry h3{margin-bottom:6px;color:var(--teal-dark);font-size:1rem;}
+  .booking-entry p{margin:4px 0;color:var(--text);font-size:.88rem;overflow-wrap:anywhere;}
+  .booking-entry strong{color:var(--dark);}
   .privacy-dialog{width:min(520px,calc(100% - 32px));}
   .privacy-dialog p{margin:12px 0;color:var(--text);}
   .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
@@ -219,6 +232,7 @@
     <li class="language-control"><label for="languageSelector" class="visually-hidden">Language</label><select id="languageSelector" aria-label="Language"><option value="en">English</option><option value="ur">اردو</option></select></li>
     <li id="loginNavItem"><button type="button" class="nav-auth" onclick="openAuth('login')"><svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log in</span></button></li>
     <li id="registerNavItem"><button type="button" class="btn-y" onclick="openAuth('register')"><svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg><span>Create account</span></button></li>
+    <li id="myRequestsNavItem" hidden><button type="button" class="nav-auth" onclick="openMyRequests()">My requests</button></li>
     <li id="accountNavItem" hidden><span class="account-label" id="accountName"></span><button type="button" class="nav-auth" id="logoutButton">Log out</button></li>
     <li><button type="button" class="btn-y" onclick="openServiceForm()">+ Add Your Service</button></li>
   </ul>
@@ -229,15 +243,15 @@
 <header class="hero">
   <div class="hero-inner">
     <h1>Every skill. One click. <em>Fixed.</em></h1>
-    <p class="tagline">Find trusted local pros for any job — big or small.</p>
+    <p class="tagline">Find local pros for any job — big or small.</p>
     <form class="search-bar" id="searchForm" role="search">
       <input type="search" id="search" aria-label="Search services" placeholder="What do you need fixed or built?">
       <button type="submit">Search</button>
     </form>
     <div class="stats">
-      <div><h2>500+</h2><p>Vetted pros</p></div>
-      <div><h2>4.8★</h2><p>Average rating</p></div>
-      <div><h2>&lt; 2 hrs</h2><p>Avg. response</p></div>
+      <div><h2>Local</h2><p>Service providers</p></div>
+      <div><h2>Compare</h2><p>Reviews & rates</p></div>
+      <div><h2>Request</h2><p>Bookings saved online</p></div>
     </div>
   </div>
 </header>
@@ -312,7 +326,7 @@
 
 <dialog class="service-dialog" id="serviceDialog" aria-labelledby="serviceDialogTitle">
   <h2 id="serviceDialogTitle">List your service</h2>
-  <p>Your listing is saved in this browser and is not sent to a server.</p>
+  <p>Your listing is stored on the FIXER server and visible to visitors.</p>
   <form class="service-form" id="serviceForm">
     <label for="providerName">Full name
       <input id="providerName" name="providerName" type="text" maxlength="80" autocomplete="name" placeholder="Your first and last name" required>
@@ -366,18 +380,18 @@
   <form class="service-form" id="reviewForm">
     <input id="reviewServiceId" name="serviceId" type="hidden">
     <label for="reviewerName">Your name
-      <input id="reviewerName" name="reviewerName" autocomplete="name" maxlength="80" required>
+      <input id="reviewerName" name="reviewerName" autocomplete="name" maxlength="80" readonly required>
     </label>
-    <label for="reviewRating">Your rating
-      <select id="reviewRating" name="rating" required>
-        <option value="" disabled selected>Choose a rating</option>
-        <option value="5">5 - Excellent</option>
-        <option value="4">4 - Good</option>
-        <option value="3">3 - Average</option>
-        <option value="2">2 - Poor</option>
-        <option value="1">1 - Very poor</option>
-      </select>
-    </label>
+    <fieldset class="star-rating-field">
+      <legend>Your rating</legend>
+      <div class="star-rating" role="radiogroup" aria-label="Your rating">
+        <input id="reviewRating1" name="rating" type="radio" value="1" aria-label="1 star" required><label for="reviewRating1" aria-hidden="true">★</label>
+        <input id="reviewRating2" name="rating" type="radio" value="2" aria-label="2 stars"><label for="reviewRating2" aria-hidden="true">★</label>
+        <input id="reviewRating3" name="rating" type="radio" value="3" aria-label="3 stars"><label for="reviewRating3" aria-hidden="true">★</label>
+        <input id="reviewRating4" name="rating" type="radio" value="4" aria-label="4 stars"><label for="reviewRating4" aria-hidden="true">★</label>
+        <input id="reviewRating5" name="rating" type="radio" value="5" aria-label="5 stars"><label for="reviewRating5" aria-hidden="true">★</label>
+      </div>
+    </fieldset>
     <label for="reviewComment">Your review
       <textarea id="reviewComment" name="comment" maxlength="500" placeholder="Share your experience" required></textarea>
     </label>
@@ -390,7 +404,7 @@
 
 <dialog class="service-dialog auth-dialog" id="authDialog" aria-labelledby="authTitle">
   <h2 id="authTitle">Log in</h2>
-  <p class="auth-disclaimer">Demo accounts are stored only in this browser. Do not use a password you use elsewhere.</p>
+  <p class="auth-disclaimer">Passwords are securely hashed by FIXER. Use a unique password you do not use elsewhere.</p>
   <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
   <form class="service-form" id="loginForm">
     <label for="loginEmail">Email address
@@ -433,6 +447,7 @@
       <input id="requestedService" name="requestedService" type="text" readonly required>
     </label>
     <input id="requestedProvider" name="requestedProvider" type="hidden">
+    <input id="requestedServiceId" name="requestedServiceId" type="hidden">
     <label for="customerName">Your name
       <input id="customerName" name="customerName" autocomplete="name" maxlength="80" required>
     </label>
@@ -456,16 +471,23 @@
     </label>
     <div class="dialog-actions">
       <button class="cancel" type="button" onclick="closeDialog('requestDialog')">Cancel</button>
-      <button class="submit" type="submit">Review booking email</button>
+      <button class="submit" type="submit">Send booking request</button>
     </div>
   </form>
   <div class="request-confirmation" id="requestConfirmation" role="status" aria-live="polite"></div>
 </dialog>
 
+<dialog class="service-dialog request-dialog" id="bookingsDialog" aria-labelledby="bookingsDialogTitle">
+  <h2 id="bookingsDialogTitle">My requests</h2>
+  <p id="bookingsStatus" role="status" aria-live="polite">Loading your requests...</p>
+  <div id="bookingsList" class="booking-list"></div>
+  <div class="dialog-actions"><button class="cancel" type="button" onclick="closeDialog('bookingsDialog')">Close</button></div>
+</dialog>
+
 <dialog class="service-dialog privacy-dialog" id="privacyDialog" aria-labelledby="privacyDialogTitle">
   <h2 id="privacyDialogTitle">Privacy</h2>
-  <p>This demo stores service listings in your browser only. They are not uploaded or visible to other visitors.</p>
-  <p>When you prepare a customer request, your email app opens with the details addressed to hello@fixer.com. Nothing is sent until you choose to send that email.</p>
+  <p>Accounts, service listings, reviews, and booking requests are stored by the FIXER server. Public profiles show provider names, service details, area, rates, and phone numbers.</p>
+  <p>Booking requests are recorded for review. FIXER does not send email or SMS notifications yet.</p>
   <div class="dialog-actions"><button class="cancel" type="button" onclick="closeDialog('privacyDialog')">Close</button></div>
 </dialog>
 
@@ -480,7 +502,7 @@
   <h2 class="section-title">How It Works</h2>
   <p class="section-sub">Book an expert in 3 simple steps</p>
   <div class="steps" id="pros">
-    <div class="step"><div class="num">1</div><h3>Search</h3><p>Type the service you need and browse verified local experts.</p></div>
+    <div class="step"><div class="num">1</div><h3>Search</h3><p>Type the service you need and browse local providers.</p></div>
     <div class="step"><div class="num">2</div><h3>Compare</h3><p>Check prices, ratings, photos of past work & reviews.</p></div>
     <div class="step"><div class="num">3</div><h3>Book</h3><p>Pick a date & time. Your FIXER arrives. Job done! ✅</p></div>
   </div>
@@ -489,7 +511,7 @@
 <!-- CTA (inDrive style) -->
 <section class="cta">
   <h2>Are you a <mark>skilled worker?</mark></h2>
-  <p>Join hundreds of Fixers earning daily across your city. Registration is completely FREE.</p>
+  <p>Share your skills with local customers. Provider registration is free.</p>
   <button type="button" class="btn-y" onclick="openServiceForm()">+ Become a Fixer Today</button>
 </section>
 
@@ -498,7 +520,7 @@
   <div class="footer-grid">
     <div>
       <h4>FIXER</h4>
-      <p style="font-size:.88rem;max-width:270px;">Every skill. One click. Fixed. Connecting you with trusted local experts — plumbers, electricians, carpenters, farmers & more.</p>
+      <p style="font-size:.88rem;max-width:270px;">Every skill. One click. Fixed. Connecting customers with independent local providers — plumbers, electricians, carpenters, farmers & more.</p>
     </div>
     <div>
       <h4>Quick Links</h4>
@@ -536,15 +558,40 @@
 </footer>
 
 <script>
-  const serviceStorageKey = 'fixer.services';
-  const reviewStorageKey = 'fixer.reviews';
   const savedProvidersStorageKey = 'fixer.savedProviders';
-  const accountStorageKey = 'fixer.demoAccounts';
-  const authSessionKey = 'fixer.demoSession';
   let profilePhotoData = '';
   let profilePhotoProcessing = 0;
   let selectedCategory = '';
   let showingSavedOnly = false;
+  let apiCsrfToken = '';
+  let currentAccount = null;
+  let pendingServiceForm = false;
+  let pendingReviewService = null;
+
+  async function apiRequest(path, options={}){
+    const method = (options.method || 'GET').toUpperCase();
+    const headers = {Accept:'application/json', ...options.headers};
+    if(options.body !== undefined) headers['Content-Type'] = 'application/json';
+    if(!['GET', 'HEAD', 'OPTIONS'].includes(method)){
+      if(!apiCsrfToken){
+        const csrfResponse = await fetch('/api/csrf', {credentials:'same-origin'});
+        const csrfPayload = await csrfResponse.json();
+        if(!csrfResponse.ok) throw new Error(csrfPayload.error || 'Could not start a secure session.');
+        apiCsrfToken = csrfPayload.csrfToken;
+      }
+      headers['X-CSRF-Token'] = apiCsrfToken;
+    }
+    const response = await fetch(path, {
+      ...options,
+      method,
+      headers,
+      credentials:'same-origin'
+    });
+    const payload = await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(payload.error || 'The request could not be completed.');
+    if(payload.csrfToken) apiCsrfToken = payload.csrfToken;
+    return payload;
+  }
   const demoServices = [
     {
       id:'demo-pakistan-lahore-electrician', fullName:'Faizan Ali', name:'Home Electrician', category:'Electrical',
@@ -665,6 +712,7 @@
     'A simpler way to find and hire local service professionals.':'مقامی سروس فراہم کرنے والے ماہرین کو تلاش اور ہائر کرنے کا آسان طریقہ۔',
     'FIXER connects people who need a job done with independent local service providers. Browse service categories, compare provider details, and send a booking request with your preferred location and time.':'FIXER کام کروانے کے خواہش مند افراد کو مقامی آزاد سروس فراہم کرنے والوں سے ملاتا ہے۔ سروس کی اقسام دیکھیں، فراہم کنندگان کی تفصیلات کا موازنہ کریں، اور اپنی پسندیدہ جگہ اور وقت کے ساتھ بکنگ کی درخواست بھیجیں۔',
     'Log in':'لاگ اِن', 'Create account':'اکاؤنٹ بنائیں', 'Log out':'لاگ آؤٹ', '+ Add Your Service':'اپنی سروس شامل کریں',
+    'My requests':'میری درخواستیں', 'Loading your requests...':'آپ کی درخواستیں لوڈ ہو رہی ہیں...', 'No booking requests yet.':'ابھی کوئی بکنگ درخواست نہیں۔',
     'Saved pros':'محفوظ ماہرین', 'Show all providers':'تمام ماہرین دکھائیں', 'Save provider':'ماہر کو محفوظ کریں', 'Remove from saved pros':'محفوظ فہرست سے ہٹائیں',
     'No saved providers yet. Use the heart on a provider card to keep one here.':'ابھی کوئی ماہر محفوظ نہیں۔ کسی ماہر کو یہاں رکھنے کے لیے اس کے کارڈ پر دل کے نشان کو منتخب کریں۔',
     'No saved providers match this search.':'اس تلاش سے کوئی محفوظ ماہر نہیں ملا۔', 'Could not save this provider in browser storage.':'یہ ماہر براؤزر اسٹوریج میں محفوظ نہیں ہو سکا۔',
@@ -709,9 +757,9 @@
     'No demo account found for this email. Create an account first.':'اس ای میل کا ڈیمو اکاؤنٹ نہیں ملا۔ پہلے اکاؤنٹ بنائیں۔',
     'Password hashing is unavailable. Open this demo in a modern browser over localhost or HTTPS.':'پاس ورڈ محفوظ کرنے کی سہولت دستیاب نہیں۔ یہ ڈیمو جدید براؤزر میں localhost یا HTTPS پر کھولیں۔',
     'Every skill. One click.':'ہر ہنر، ایک کلک میں', 'Fixed.':'حل حاضر!',
-    'Find trusted local pros for any job — big or small.':'ہر چھوٹے بڑے کام کے لیے قابلِ اعتماد مقامی ماہر تلاش کریں۔',
+    'Find local pros for any job — big or small.':'ہر چھوٹے بڑے کام کے لیے مقامی ماہر تلاش کریں۔',
     'What do you need fixed or built?':'آپ کو کس کام کے لیے ماہر چاہیے؟', 'Search':'تلاش کریں',
-    'Vetted pros':'تصدیق شدہ ماہرین', 'Average rating':'اوسط درجہ بندی', 'Avg. response':'اوسط جواب',
+    'Service providers':'سروس فراہم کرنے والے', 'Reviews & rates':'جائزے اور قیمتیں', 'Bookings saved online':'آن لائن محفوظ بکنگ',
     'Browse Categories':'سروس کی اقسام دیکھیں', 'Scroll & pick the expert you need':'اپنی ضرورت کی سروس منتخب کریں',
     'Pakistan sample profiles and reviews are fictional. Portraits are illustrative stock photos, not real workers or Google-sourced images.':'پاکستان کے یہ نمونہ پروفائل اور جائزے فرضی ہیں۔ تصاویر صرف مثال کے لیے ہیں، حقیقی کارکنوں یا گوگل سے نہیں لی گئیں۔',
     'Browse all categories':'تمام اقسام دیکھیں', 'Ask FIXER to find a provider':'FIXER سے ماہر تلاش کرنے کو کہیں',
@@ -729,7 +777,7 @@
     'General Labor':'عام مزدوری', 'Helpers, Loaders, Daily-Wage Workers':'مددگار، لوڈر اور یومیہ مزدور',
     'Add Your Service':'اپنی سروس شامل کریں', 'Are you a skilled worker? Join FIXER and get customers.':'کیا آپ ہنر مند ہیں؟ FIXER میں شامل ہوں اور گاہک حاصل کریں۔',
     'Register Free →':'مفت رجسٹر کریں →', 'List your service':'اپنی سروس درج کریں',
-    'Your listing is saved in this browser and is not sent to a server.':'آپ کی لسٹنگ اسی براؤزر میں محفوظ ہوگی، سرور پر نہیں بھیجی جائے گی۔',
+    'Your listing is stored on the FIXER server and visible to visitors.':'آپ کی لسٹنگ FIXER سرور پر محفوظ ہوگی اور وزیٹرز کو نظر آئے گی۔',
     'Full name':'پورا نام', 'Your first and last name':'اپنا پورا نام لکھیں', 'Profile picture':'پروفائل تصویر',
     'Choose a clear face photo. Images are resized before saving in this browser.':'اپنی واضح تصویر منتخب کریں۔ تصویر براؤزر میں محفوظ کرنے سے پہلے چھوٹی کی جائے گی۔',
     'No photo selected':'کوئی تصویر منتخب نہیں', 'Service name':'سروس کا نام', 'e.g. Appliance repair':'مثلاً آلات کی مرمت',
@@ -740,26 +788,29 @@
     'Certificate or license name':'سرٹیفکیٹ یا لائسنس کا نام', 'Enter a certificate or license you hold. It is self-reported.':'اپنے سرٹیفکیٹ یا لائسنس کا نام لکھیں۔ اس کی تصدیق نہیں کی گئی۔',
     'What do you offer?':'آپ کون سی سروس دیتے ہیں؟', 'Describe your service in a sentence':'اپنی سروس مختصراً بیان کریں',
     'Cancel':'منسوخ کریں', 'Add service':'سروس شامل کریں', 'Rate this service':'اس سروس کی درجہ بندی کریں',
-    'Your rating':'آپ کی درجہ بندی', 'Choose a rating':'درجہ بندی منتخب کریں', '5 - Excellent':'5 - بہترین', '4 - Good':'4 - اچھا',
+    'Your rating':'آپ کی درجہ بندی', '1 star':'1 ستارہ', '2 stars':'2 ستارے', '3 stars':'3 ستارے', '4 stars':'4 ستارے', '5 stars':'5 ستارے',
+    'Choose a rating':'درجہ بندی منتخب کریں', '5 - Excellent':'5 - بہترین', '4 - Good':'4 - اچھا',
     '3 - Average':'3 - اوسط', '2 - Poor':'2 - کمزور', '1 - Very poor':'1 - بہت کمزور',
     'Your review':'آپ کا جائزہ', 'Share your experience':'اپنا تجربہ بتائیں', 'Post review':'جائزہ بھیجیں',
-    'Demo accounts are stored only in this browser. Do not use a password you use elsewhere.':'ڈیمو اکاؤنٹس صرف اسی براؤزر میں محفوظ ہوتے ہیں۔ اپنا اہم یا دوسرا استعمال ہونے والا پاس ورڈ نہ دیں۔',
+    'Passwords are securely hashed by FIXER. Use a unique password you do not use elsewhere.':'FIXER آپ کے پاس ورڈ کو محفوظ طریقے سے ہیش کرتا ہے۔ ایسا منفرد پاس ورڈ استعمال کریں جو کہیں اور استعمال نہ ہو۔',
     'Email address':'ای میل ایڈریس', 'Password':'پاس ورڈ', 'Use at least 8 characters. Avoid reusing an important password.':'کم از کم 8 حروف استعمال کریں۔ اہم پاس ورڈ دوبارہ استعمال نہ کریں۔',
     'Confirm password':'پاس ورڈ کی تصدیق', 'Book a service':'سروس بک کریں',
     'Add your contact details and where and when you’d like to meet the provider.':'اپنا رابطہ، ملاقات کی جگہ اور پسندیدہ وقت درج کریں۔',
     'Service':'سروس', 'Your name':'آپ کا نام', 'Meeting / service location':'ملاقات / سروس کا مقام',
     'Street address, area, and city':'گلی، علاقہ اور شہر کا پتہ', 'Preferred date':'پسندیدہ تاریخ', 'Preferred time':'پسندیدہ وقت',
-    'Job details':'کام کی تفصیل', 'Describe the work you need done':'درکار کام کی تفصیل لکھیں', 'Review booking email':'بکنگ ای میل دیکھیں',
+    'Job details':'کام کی تفصیل', 'Describe the work you need done':'درکار کام کی تفصیل لکھیں', 'Send booking request':'بکنگ درخواست بھیجیں',
+    'booking requests':'بکنگ درخواستیں', 'Provider':'فراہم کنندہ', 'Customer':'گاہک', 'Email':'ای میل', 'Phone':'فون', 'Date':'تاریخ', 'Time':'وقت', 'Location':'مقام',
+    'Your booking request was saved. The provider can review it in My requests.':'آپ کی بکنگ درخواست محفوظ ہو گئی ہے۔ فراہم کنندہ اسے میری درخواستوں میں دیکھ سکتا ہے۔',
     'Your booking request is ready in an email draft. It is not sent or booked until you send the email.':'آپ کی بکنگ کی درخواست ای میل میں تیار ہے۔ ای میل بھیجنے سے پہلے بکنگ نہیں ہوگی۔',
     'Open email to send booking request':'بکنگ کی درخواست بھیجنے کے لیے ای میل کھولیں', 'Privacy':'رازداری',
     'This demo stores service listings in your browser only. They are not uploaded or visible to other visitors.':'یہ ڈیمو سروس لسٹنگ صرف آپ کے براؤزر میں محفوظ کرتا ہے۔ دوسرے وزیٹر انہیں نہیں دیکھ سکتے۔',
     'When you prepare a customer request, your email app opens with the details addressed to hello@fixer.com. Nothing is sent until you choose to send that email.':'درخواست تیار کرنے پر آپ کی ای میل ایپ hello@fixer.com کے پتے کے ساتھ کھلے گی۔ ای میل بھیجنے تک کچھ ارسال نہیں ہوگا۔',
     'Close':'بند کریں', 'How It Works':'طریقہ کار', 'Book an expert in 3 simple steps':'صرف 3 آسان مراحل میں ماہر بک کریں',
-    'Type the service you need and browse verified local experts.':'درکار سروس لکھیں اور مقامی ماہرین دیکھیں۔',
+    'Type the service you need and browse local providers.':'درکار سروس لکھیں اور مقامی فراہم کنندگان دیکھیں۔',
     'Check prices, ratings, photos of past work & reviews.':'قیمت، درجہ بندی، کام کی تصاویر اور جائزے دیکھیں۔',
     'Pick a date & time. Your FIXER arrives. Job done! ✅':'تاریخ اور وقت منتخب کریں۔ FIXER پہنچے گا، کام مکمل! ✅',
     'Are you a':'کیا آپ', 'skilled worker?':'ہنر مند ہیں؟',
-    'Join hundreds of Fixers earning daily across your city. Registration is completely FREE.':'اپنے شہر میں کام کرنے والے سینکڑوں FIXER ساتھیوں میں شامل ہوں۔ رجسٹریشن بالکل مفت ہے۔',
+    'Share your skills with local customers. Provider registration is free.':'مقامی گاہکوں کے ساتھ اپنی مہارتیں بانٹیں۔ فراہم کنندہ کے طور پر رجسٹریشن مفت ہے۔',
     '+ Become a Fixer Today':'آج ہی FIXER بنیں', 'Quick Links':'فوری روابط', 'Become a Fixer':'FIXER بنیں',
     'Support':'مدد', 'Contact Us':'ہم سے رابطہ کریں', 'Help Center':'مدد مرکز', 'Privacy Policy':'رازداری کی پالیسی',
     'Contact':'رابطہ', 'No ratings yet':'ابھی کوئی درجہ بندی نہیں', 'Write a review':'جائزہ لکھیں', 'DEMO PROFILE':'ڈیمو پروفائل',
@@ -867,16 +918,8 @@
   }
 
   function closeDialog(id){
+    if(id === 'authDialog') pendingServiceForm = false;
     document.getElementById(id).close();
-  }
-
-  function readAccounts(){
-    try{
-      const accounts = JSON.parse(localStorage.getItem(accountStorageKey) || '[]');
-      return Array.isArray(accounts) ? accounts : [];
-    }catch{
-      return [];
-    }
   }
 
   function setAuthMode(mode){
@@ -892,7 +935,11 @@
     message.textContent = localizeText(text);
   }
 
-  function openAuth(mode){
+  function openAuth(mode,preserveServiceIntent=false){
+    if(!preserveServiceIntent){
+      pendingServiceForm = false;
+      pendingReviewService = null;
+    }
     document.getElementById('menu').classList.remove('open');
     const menuButton = document.querySelector('.hamburger');
     menuButton.setAttribute('aria-expanded', 'false');
@@ -903,126 +950,93 @@
     document.getElementById('authDialog').showModal();
   }
 
-  async function hashPassword(password, saltText){
-    if(!window.crypto || !window.crypto.subtle) throw new Error('Password hashing is unavailable. Open this demo in a modern browser over localhost or HTTPS.');
-    const salt = saltText
-      ? Uint8Array.from(atob(saltText), character=>character.charCodeAt(0))
-      : window.crypto.getRandomValues(new Uint8Array(16));
-    const saltBase64 = saltText || btoa(String.fromCharCode(...salt));
-    const key = await window.crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-    const bits = await window.crypto.subtle.deriveBits({name:'PBKDF2', salt, iterations:120000, hash:'SHA-256'}, key, 256);
-    const hash = Array.from(new Uint8Array(bits), byte=>byte.toString(16).padStart(2, '0')).join('');
-    return {salt:saltBase64, hash};
-  }
-
   function updateAuthNav(){
-    let currentEmail = '';
-    try{
-      currentEmail = JSON.parse(sessionStorage.getItem(authSessionKey) || '{}').email || '';
-    }catch{
-      currentEmail = '';
-    }
-    const account = readAccounts().find(item=>item.email === currentEmail);
+    const account = currentAccount;
     document.getElementById('loginNavItem').hidden = Boolean(account);
     document.getElementById('registerNavItem').hidden = Boolean(account);
+    document.getElementById('myRequestsNavItem').hidden = !account;
     document.getElementById('accountNavItem').hidden = !account;
     document.getElementById('accountName').textContent = account
       ? currentLanguage === 'ur' ? `${account.name}، خوش آمدید` : `Hi, ${account.name}`
       : '';
-    if(!account){
-      try{sessionStorage.removeItem(authSessionKey);}catch{}
-    }
   }
 
   function startAccountSession(account){
-    try{
-      sessionStorage.setItem(authSessionKey, JSON.stringify({email:account.email}));
-      updateAuthNav();
-      document.getElementById('authDialog').close();
-      document.getElementById('loginForm').reset();
-      document.getElementById('registerForm').reset();
-      return true;
-    }catch{
-      setAuthMessage('Could not start a session in this browser. Check browser storage settings.');
-      return false;
+    currentAccount = account;
+    updateAuthNav();
+    document.getElementById('authDialog').close();
+    document.getElementById('loginForm').reset();
+    document.getElementById('registerForm').reset();
+    if(pendingReviewService){
+      const service = pendingReviewService;
+      pendingReviewService = null;
+      openReviewForm(service);
+    }else if(pendingServiceForm){
+      pendingServiceForm = false;
+      openServiceForm();
     }
   }
 
   document.getElementById('registerForm').addEventListener('submit', async event=>{
     event.preventDefault();
     const form = event.currentTarget;
-    const email = form.elements.email.value.trim().toLowerCase();
     if(form.elements.password.value !== form.elements.confirmPassword.value){
       setAuthMessage('The passwords do not match.');
       return;
     }
-    const accounts = readAccounts();
-    if(accounts.some(account=>account.email === email)){
-      setAuthMessage('An account with this email already exists. Try logging in.');
-      return;
-    }
     try{
-      const credentials = await hashPassword(form.elements.password.value);
-      const account = {name:form.elements.name.value.trim(), email, salt:credentials.salt, passwordHash:credentials.hash};
-      accounts.push(account);
-      localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
-      if(startAccountSession(account)) setAuthMessage('');
+      const payload = await apiRequest('/api/auth/register', {
+        method:'POST',
+        body:JSON.stringify({
+          name:form.elements.name.value.trim(),
+          email:form.elements.email.value.trim(),
+          password:form.elements.password.value
+        })
+      });
+      startAccountSession(payload.user);
     }catch(error){
-      setAuthMessage(error.name === 'QuotaExceededError' ? 'Browser storage is full; this demo account could not be saved.' : error.message);
+      setAuthMessage(error.message);
     }
   });
 
   document.getElementById('loginForm').addEventListener('submit', async event=>{
     event.preventDefault();
     const form = event.currentTarget;
-    const email = form.elements.email.value.trim().toLowerCase();
-    const account = readAccounts().find(item=>item.email === email);
-    if(!account){
-      setAuthMessage('No demo account found for this email. Create an account first.');
-      return;
-    }
     try{
-      const credentials = await hashPassword(form.elements.password.value, account.salt);
-      if(credentials.hash !== account.passwordHash){
-        setAuthMessage('Incorrect email or password.');
-        return;
-      }
-      startAccountSession(account);
+      const payload = await apiRequest('/api/auth/login', {
+        method:'POST',
+        body:JSON.stringify({email:form.elements.email.value.trim(), password:form.elements.password.value})
+      });
+      startAccountSession(payload.user);
     }catch(error){
       setAuthMessage(error.message);
     }
   });
 
-  document.getElementById('logoutButton').addEventListener('click',()=>{
-    try{sessionStorage.removeItem(authSessionKey);}catch{}
-    updateAuthNav();
+  document.getElementById('logoutButton').addEventListener('click',async()=>{
+    try{
+      await apiRequest('/api/auth/logout', {method:'POST'});
+      currentAccount = null;
+      apiCsrfToken = '';
+      await apiRequest('/api/csrf');
+      updateAuthNav();
+    }catch(error){
+      document.getElementById('searchStatus').textContent = localizeText(error.message);
+    }
   });
 
   function openServiceForm(){
+    if(!currentAccount){
+      pendingServiceForm = true;
+      openAuth('register', true);
+      return;
+    }
     document.getElementById('menu').classList.remove('open');
     const menuButton = document.querySelector('.hamburger');
     menuButton.setAttribute('aria-expanded', 'false');
     menuButton.setAttribute('aria-label', localizeText('Open navigation menu'));
     document.getElementById('serviceForm').reset();
     document.getElementById('serviceDialog').showModal();
-  }
-
-  function readServices(){
-    try{
-      const saved = JSON.parse(localStorage.getItem(serviceStorageKey) || '[]');
-      return Array.isArray(saved) ? saved : [];
-    }catch{
-      return [];
-    }
-  }
-
-  function writeServices(services){
-    try{
-      localStorage.setItem(serviceStorageKey, JSON.stringify(services));
-      return true;
-    }catch{
-      return false;
-    }
   }
 
   function readSavedProviderIds(){
@@ -1072,28 +1086,6 @@
     }
     updateSavedProviderButtons();
     filterCards();
-  }
-
-  function readReviews(){
-    try{
-      const saved = JSON.parse(localStorage.getItem(reviewStorageKey) || '[]');
-      return Array.isArray(saved) ? saved : [];
-    }catch{
-      return [];
-    }
-  }
-
-  function writeReviews(reviews){
-    try{
-      localStorage.setItem(reviewStorageKey, JSON.stringify(reviews));
-      return true;
-    }catch{
-      return false;
-    }
-  }
-
-  function createServiceId(){
-    return `service-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
   }
 
   function compressProfilePhoto(file){
@@ -1187,15 +1179,42 @@
   }
 
   function openReviewForm(service){
+    if(service.isDemo) return;
+    if(!currentAccount){
+      pendingReviewService = service;
+      openAuth('login', true);
+      setAuthMessage('Log in to write a review.');
+      return;
+    }
     document.getElementById('reviewForm').reset();
     document.getElementById('reviewServiceId').value = service.id;
     document.getElementById('reviewServiceName').textContent = service.name;
+    document.getElementById('reviewerName').value = currentAccount.name;
     document.getElementById('reviewDialog').showModal();
   }
 
+  const reviewFormElement = document.getElementById('reviewForm');
+  const starRatingGroup = reviewFormElement.querySelector('.star-rating');
+  function updateStarRatingDisplay(rating){
+    const selectedRating = Number(rating) || 0;
+    starRatingGroup.querySelectorAll('label').forEach((label,index)=>{
+      label.classList.toggle('is-filled', index < selectedRating);
+    });
+  }
+  starRatingGroup.querySelectorAll('label').forEach((label,index)=>{
+    label.addEventListener('mouseenter',()=>updateStarRatingDisplay(index + 1));
+  });
+  starRatingGroup.addEventListener('change',event=>{
+    if(event.target.matches('input[name="rating"]')) updateStarRatingDisplay(event.target.value);
+  });
+  starRatingGroup.addEventListener('mouseleave',()=>{
+    updateStarRatingDisplay(starRatingGroup.querySelector('input[name="rating"]:checked')?.value);
+  });
+  reviewFormElement.addEventListener('reset',()=>updateStarRatingDisplay(0));
+
   function createServiceCard(service){
     const serviceCard = document.createElement('div');
-    serviceCard.className = 'card user-service';
+    serviceCard.className = service.isDemo ? 'card user-service demo-service' : 'card user-service';
     serviceCard.dataset.serviceId = service.id;
     serviceCard.dataset.category = service.category.toLowerCase();
     const favoriteButton = document.createElement('button');
@@ -1278,9 +1297,9 @@
       : `Hire ${service.fullName || 'this provider'} for ${service.name}`);
     requestLink.addEventListener('click', event=>{
       event.preventDefault();
-      openRequestForm(service.name, service.fullName);
+      openRequestForm(service.name, service.fullName, service.isDemo ? '' : service.id);
     });
-    const visitorReviews = readReviews().filter(review=>review.serviceId === service.id);
+    const visitorReviews = service.reviews || [];
     const sampleReviews = service.demoReviews || [];
     const serviceReviews = [
       ...sampleReviews.map(review=>({...review, isSample:true})),
@@ -1291,16 +1310,18 @@
       const average = sampleReviews.reduce((total, review)=>total + Number(review.rating), 0) / sampleReviews.length;
       const sampleSummary = createProviderMeta(`Sample rating: ${average.toFixed(1)} / 5 · ${sampleReviews.length} sample reviews`);
       sampleSummary.classList.add('rating-summary', 'demo-rating');
+      sampleSummary.style.setProperty('--rating-fill', `${average / 5 * 100}%`);
       ratingSummaries.push(sampleSummary);
     }
     if(visitorReviews.length){
       const average = visitorReviews.reduce((total, review)=>total + Number(review.rating), 0) / visitorReviews.length;
       const visitorSummary = createProviderMeta(`Visitor rating: ${average.toFixed(1)} / 5 · ${visitorReviews.length} ${visitorReviews.length === 1 ? 'review' : 'reviews'}`);
       visitorSummary.classList.add('rating-summary');
+      visitorSummary.style.setProperty('--rating-fill', `${average / 5 * 100}%`);
       ratingSummaries.push(visitorSummary);
     }else if(!sampleReviews.length){
       const emptySummary = createProviderMeta('No ratings yet');
-      emptySummary.classList.add('rating-summary');
+      emptySummary.classList.add('rating-summary', 'no-rating-summary');
       ratingSummaries.push(emptySummary);
     }
     const reviewButton = document.createElement('button');
@@ -1308,7 +1329,8 @@
     reviewButton.type = 'button';
     reviewButton.textContent = localizeText('Write a review');
     reviewButton.addEventListener('click',()=>openReviewForm(service));
-    serviceCard.append(providerActions, ...providerDetails, ...ratingSummaries, reviewButton);
+    serviceCard.append(providerActions, ...providerDetails, ...ratingSummaries);
+    if(!service.isDemo) serviceCard.append(reviewButton);
     if(serviceReviews.length){
       const reviewList = document.createElement('details');
       reviewList.className = 'review-list';
@@ -1336,20 +1358,16 @@
     return serviceCard;
   }
 
-  function renderSavedServices(){
+  function renderProviderServices(services){
     const grid = document.getElementById('cardGrid');
-    const services = readServices();
-    let needsSave = false;
+    grid.querySelectorAll('.user-service:not(.demo-service)').forEach(card=>card.remove());
     services.forEach(service=>{
-      if(service && !service.id){
-        service.id = createServiceId();
-        needsSave = true;
-      }
       if(service && service.name && service.category && service.description){
         grid.insertBefore(createServiceCard(service), document.getElementById('join'));
       }
     });
-    if(needsSave) writeServices(services);
+    updateSavedProviderButtons();
+    filterCards();
   }
 
   function renderDemoServices(){
@@ -1357,10 +1375,24 @@
     demoServices.forEach(service=>grid.insertBefore(createServiceCard(service), document.getElementById('join')));
   }
 
-  function openRequestForm(serviceName, providerName=''){
+  async function loadProviderServices(){
+    try{
+      const payload = await apiRequest('/api/services');
+      renderProviderServices(payload.services);
+    }catch(error){
+      document.getElementById('searchStatus').textContent = localizeText(`Could not load providers: ${error.message}`);
+    }
+  }
+
+  function openRequestForm(serviceName, providerName='', serviceId=''){
     document.getElementById('requestForm').reset();
     document.getElementById('requestedService').value = serviceName;
     document.getElementById('requestedProvider').value = providerName;
+    document.getElementById('requestedServiceId').value = serviceId;
+    if(currentAccount){
+      document.getElementById('customerName').value = currentAccount.name;
+      document.getElementById('customerEmail').value = currentAccount.email;
+    }
     document.getElementById('requestDialogTitle').textContent = currentLanguage === 'ur'
       ? providerName ? `${providerName} کو بک کریں` : `${localizeText(serviceName)} سروس بک کریں`
       : providerName ? `Book ${providerName}` : `Book ${serviceName} service`;
@@ -1370,6 +1402,56 @@
     document.getElementById('requestConfirmation').style.display = 'none';
     document.getElementById('requestConfirmation').replaceChildren();
     document.getElementById('requestDialog').showModal();
+  }
+
+  async function openMyRequests(){
+    if(!currentAccount){
+      openAuth('login');
+      return;
+    }
+    document.getElementById('menu').classList.remove('open');
+    document.querySelector('.hamburger').setAttribute('aria-expanded', 'false');
+    const list = document.getElementById('bookingsList');
+    const status = document.getElementById('bookingsStatus');
+    list.replaceChildren();
+    status.textContent = localizeText('Loading your requests...');
+    document.getElementById('bookingsDialog').showModal();
+    try{
+      const payload = await apiRequest('/api/bookings');
+      if(!payload.bookings.length){
+        status.textContent = localizeText('No booking requests yet.');
+        return;
+      }
+      status.textContent = `${payload.bookings.length} ${localizeText('booking requests')}`;
+      payload.bookings.forEach(booking=>{
+        const entry = document.createElement('article');
+        entry.className = 'booking-entry';
+        const title = document.createElement('h3');
+        title.textContent = `${booking.requested_service} · ${booking.status}`;
+        entry.append(title);
+        const fields = [
+          ['Provider', booking.requested_provider],
+          ['Customer', booking.customer_name],
+          ['Email', booking.customer_email],
+          ['Phone', booking.customer_phone],
+          ['Date', booking.booking_date],
+          ['Time', booking.booking_time],
+          ['Location', booking.location],
+          ['Job details', booking.details]
+        ];
+        fields.forEach(([label, value])=>{
+          if(!value) return;
+          const line = document.createElement('p');
+          const labelElement = document.createElement('strong');
+          labelElement.textContent = `${localizeText(label)}: `;
+          line.append(labelElement, document.createTextNode(value));
+          entry.append(line);
+        });
+        list.append(entry);
+      });
+    }catch(error){
+      status.textContent = localizeText(error.message);
+    }
   }
 
   document.querySelectorAll('#cardGrid > .card:not(.add)').forEach(card=>{
@@ -1452,7 +1534,6 @@
     const form = event.currentTarget;
     serviceSubmitButton.disabled = true;
     const service = {
-      id:createServiceId(),
       fullName:form.elements.providerName.value.trim(),
       profilePhoto:profilePhotoData,
       name:form.elements.serviceName.value.trim(),
@@ -1464,64 +1545,70 @@
       experience:form.elements.serviceExperience.value,
       certification:form.elements.serviceCertification.value.trim()
     };
-    const savedServices = readServices();
-    savedServices.push(service);
-    if(!writeServices(savedServices)){
-      document.getElementById('searchStatus').textContent = localizeText('Service added for this visit, but browser storage is unavailable.');
+    try{
+      const payload = await apiRequest('/api/services', {method:'POST', body:JSON.stringify(service)});
+      const serviceCard = createServiceCard(payload.service);
+      document.getElementById('cardGrid').insertBefore(serviceCard, document.getElementById('join'));
+      updateSavedProviderButtons();
+      document.getElementById('serviceDialog').close();
+      form.reset();
+      serviceCard.scrollIntoView({behavior:'smooth', block:'center'});
+    }catch(error){
+      document.getElementById('searchStatus').textContent = localizeText(error.message);
+    }finally{
+      serviceSubmitButton.disabled = false;
     }
-    const serviceCard = createServiceCard(service);
-    document.getElementById('cardGrid').insertBefore(serviceCard, document.getElementById('join'));
-    document.getElementById('serviceDialog').close();
-    form.reset();
-    serviceCard.scrollIntoView({behavior:'smooth', block:'center'});
-    serviceSubmitButton.disabled = false;
   });
 
-  document.getElementById('reviewForm').addEventListener('submit', event=>{
+  document.getElementById('reviewForm').addEventListener('submit', async event=>{
     event.preventDefault();
     const form = event.currentTarget;
     const serviceId = form.elements.serviceId.value;
-    const review = {
-      serviceId,
-      name:form.elements.reviewerName.value.trim(),
-      rating:Number(form.elements.rating.value),
-      comment:form.elements.comment.value.trim()
-    };
-    const reviews = readReviews();
-    reviews.push(review);
-    if(!writeReviews(reviews)){
-      document.getElementById('searchStatus').textContent = localizeText('Review added for this visit, but browser storage is unavailable.');
+    try{
+      await apiRequest(`/api/services/${encodeURIComponent(serviceId)}/reviews`, {
+        method:'POST',
+        body:JSON.stringify({rating:Number(form.elements.rating.value), comment:form.elements.comment.value.trim()})
+      });
+      document.getElementById('reviewDialog').close();
+      await loadProviderServices();
+    }catch(error){
+      document.getElementById('searchStatus').textContent = localizeText(error.message);
     }
-    const service = readServices().find(item=>item.id === serviceId) || demoServices.find(item=>item.id === serviceId);
-    const existingCard = document.querySelector(`.user-service[data-service-id="${CSS.escape(serviceId)}"]`);
-    if(service && existingCard) existingCard.replaceWith(createServiceCard(service));
-    document.getElementById('reviewDialog').close();
   });
 
   document.getElementById('requestForm').addEventListener('submit', event=>{
     event.preventDefault();
     const form = event.currentTarget;
-    const subject = `Booking request: ${form.elements.requestedService.value}`;
-    const body = [
-      `Service: ${form.elements.requestedService.value}`,
-      form.elements.requestedProvider.value ? `Preferred provider: ${form.elements.requestedProvider.value}` : '',
-      `Name: ${form.elements.customerName.value.trim()}`,
-      `Email: ${form.elements.customerEmail.value.trim()}`,
-      `Phone: ${form.elements.customerPhone.value.trim()}`,
-      `Meeting / service location: ${form.elements.meetingLocation.value.trim()}`,
-      `Preferred date: ${form.elements.bookingDate.value}`,
-      `Preferred time: ${form.elements.bookingTime.value}`,
-      '',
-      form.elements.requestDetails.value.trim()
-    ].join('\n');
     const confirmation = document.getElementById('requestConfirmation');
-    const message = document.createElement('p');
-    message.textContent = localizeText('Your booking request is ready in an email draft. It is not sent or booked until you send the email.');
-    const emailLink = document.createElement('a');
-    emailLink.href = `mailto:hello@fixer.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    emailLink.textContent = localizeText('Open email to send booking request');
-    confirmation.replaceChildren(message, emailLink);
-    confirmation.style.display = 'block';
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    apiRequest('/api/bookings', {
+      method:'POST',
+      body:JSON.stringify({
+        serviceId:form.elements.requestedServiceId.value || null,
+        requestedService:form.elements.requestedService.value,
+        requestedProvider:form.elements.requestedProvider.value,
+        customerName:form.elements.customerName.value.trim(),
+        customerEmail:form.elements.customerEmail.value.trim(),
+        customerPhone:form.elements.customerPhone.value.trim(),
+        location:form.elements.meetingLocation.value.trim(),
+        date:form.elements.bookingDate.value,
+        time:form.elements.bookingTime.value,
+        details:form.elements.requestDetails.value.trim()
+      })
+    }).then(payload=>{
+      const message = document.createElement('p');
+      message.textContent = `${localizeText('Your booking request was saved. The provider can review it in My requests.')} (${payload.booking.reference})`;
+      confirmation.replaceChildren(message);
+      confirmation.style.display = 'block';
+    }).catch(error=>{
+      const message = document.createElement('p');
+      message.textContent = localizeText(error.message);
+      confirmation.replaceChildren(message);
+      confirmation.style.display = 'block';
+    }).finally(()=>{
+      submitButton.disabled = false;
+    });
   });
 
   document.getElementById('searchForm').addEventListener('submit', event=>{
@@ -1583,13 +1670,27 @@
     menuButton.setAttribute('aria-label', 'Open navigation menu');
   }));
 
-  renderSavedServices();
   renderDemoServices();
   updateAuthNav();
+  updateSavedProviderButtons();
   document.getElementById('languageSelector').addEventListener('change', event=>setLanguage(event.currentTarget.value));
   let savedLanguage = 'en';
   try{savedLanguage = localStorage.getItem('fixer.language') === 'ur' ? 'ur' : 'en';}catch{}
   setLanguage(savedLanguage);
+
+  async function initializeApp(){
+    try{
+      await apiRequest('/api/csrf');
+      const payload = await apiRequest('/api/auth/me');
+      currentAccount = payload.user;
+      updateAuthNav();
+      await loadProviderServices();
+    }catch(error){
+      document.getElementById('searchStatus').textContent = localizeText(`Could not connect to FIXER: ${error.message}`);
+    }
+  }
+
+  initializeApp();
 </script>
 
 </body>
