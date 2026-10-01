@@ -101,6 +101,14 @@
   .card .request-link:hover{transform:translateY(-1px);background:var(--teal-dark);color:#fff;}
   .card .request-link:focus-visible{outline:3px solid var(--yellow-dark);outline-offset:3px;}
   .provider-meta{font-size:.82rem!important;color:#526462!important;margin-bottom:8px!important;overflow-wrap:anywhere;}
+  .saved-providers-toolbar{display:flex;justify-content:flex-end;max-width:1150px;margin:0 auto 12px;}
+  .saved-providers-filter{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid #cbd8d6;border-radius:6px;background:#fff;color:var(--teal-dark);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;}
+  .saved-providers-filter:hover,.saved-providers-filter[aria-pressed="true"]{border-color:var(--teal);background:#edf7f4;}
+  .saved-providers-filter .saved-count{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#e8efee;font-size:.78rem;}
+  .provider-card-actions{display:flex;justify-content:flex-end;min-height:34px;margin:-14px -8px 2px;}
+  .favorite-button{display:grid;place-items:center;width:36px;height:36px;border:1px solid #d8e2e0;border-radius:50%;background:#fff;color:#526462;font:inherit;font-size:1.4rem;line-height:1;cursor:pointer;}
+  .favorite-button:hover,.favorite-button[aria-pressed="true"]{border-color:#e4aaa5;background:#fff5f4;color:#b42318;}
+  .favorite-button:focus-visible,.saved-providers-filter:focus-visible{outline:3px solid var(--yellow-dark);outline-offset:2px;}
   .provider-photo{display:block;width:84px;height:84px;margin:0 auto 12px;border:3px solid #d7e7e4;border-radius:50%;object-fit:cover;background:#edf2f1;}
   .provider-name{color:var(--teal-dark)!important;font-weight:700;font-size:.9rem!important;margin-bottom:4px!important;}
   .demo-tag{display:inline-block;margin:0 auto 8px;padding:4px 8px;border-radius:4px;background:#fff3c4;color:#6d5d29;font-size:.7rem;font-weight:800;}
@@ -264,6 +272,11 @@
   <h2 class="section-title">Browse Categories</h2>
   <p class="section-sub">Scroll & pick the expert you need</p>
   <p class="demo-notice">Pakistan sample profiles and reviews are fictional. Portraits are illustrative stock photos, not real workers or Google-sourced images.</p>
+  <div class="saved-providers-toolbar">
+    <button class="saved-providers-filter" id="savedProvidersToggle" type="button" aria-pressed="false">
+      <span aria-hidden="true">♡</span><span id="savedProvidersLabel">Saved pros</span><span class="saved-count" id="savedProvidersCount">0</span>
+    </button>
+  </div>
   <div class="category-results-bar" id="categoryResultsBar" hidden>
     <h3 id="categoryResultsTitle"></h3>
     <button type="button" id="showAllCategories">Browse all categories</button>
@@ -525,11 +538,13 @@
 <script>
   const serviceStorageKey = 'fixer.services';
   const reviewStorageKey = 'fixer.reviews';
+  const savedProvidersStorageKey = 'fixer.savedProviders';
   const accountStorageKey = 'fixer.demoAccounts';
   const authSessionKey = 'fixer.demoSession';
   let profilePhotoData = '';
   let profilePhotoProcessing = 0;
   let selectedCategory = '';
+  let showingSavedOnly = false;
   const demoServices = [
     {
       id:'demo-pakistan-lahore-electrician', fullName:'Faizan Ali', name:'Home Electrician', category:'Electrical',
@@ -650,6 +665,9 @@
     'A simpler way to find and hire local service professionals.':'مقامی سروس فراہم کرنے والے ماہرین کو تلاش اور ہائر کرنے کا آسان طریقہ۔',
     'FIXER connects people who need a job done with independent local service providers. Browse service categories, compare provider details, and send a booking request with your preferred location and time.':'FIXER کام کروانے کے خواہش مند افراد کو مقامی آزاد سروس فراہم کرنے والوں سے ملاتا ہے۔ سروس کی اقسام دیکھیں، فراہم کنندگان کی تفصیلات کا موازنہ کریں، اور اپنی پسندیدہ جگہ اور وقت کے ساتھ بکنگ کی درخواست بھیجیں۔',
     'Log in':'لاگ اِن', 'Create account':'اکاؤنٹ بنائیں', 'Log out':'لاگ آؤٹ', '+ Add Your Service':'اپنی سروس شامل کریں',
+    'Saved pros':'محفوظ ماہرین', 'Show all providers':'تمام ماہرین دکھائیں', 'Save provider':'ماہر کو محفوظ کریں', 'Remove from saved pros':'محفوظ فہرست سے ہٹائیں',
+    'No saved providers yet. Use the heart on a provider card to keep one here.':'ابھی کوئی ماہر محفوظ نہیں۔ کسی ماہر کو یہاں رکھنے کے لیے اس کے کارڈ پر دل کے نشان کو منتخب کریں۔',
+    'No saved providers match this search.':'اس تلاش سے کوئی محفوظ ماہر نہیں ملا۔', 'Could not save this provider in browser storage.':'یہ ماہر براؤزر اسٹوریج میں محفوظ نہیں ہو سکا۔',
     'Search services':'سروس تلاش کریں', 'Hire this provider':'اس ماہر کو ہائر کریں', 'Profile photo preview':'پروفائل تصویر کا پیش منظر',
     'Find the right pro for your job':'اپنے کام کے لیے درست ماہر تلاش کریں',
     'Choose a service and your area to see matching providers.':'متعلقہ ماہرین دیکھنے کے لیے سروس اور اپنا علاقہ منتخب کریں۔',
@@ -838,6 +856,7 @@
     try{localStorage.setItem('fixer.language', currentLanguage);}catch{}
     translateSubtree();
     updateCategoryResultsTitle();
+    updateSavedProviderButtons();
   }
 
   function toggleMenu(button){
@@ -1006,6 +1025,55 @@
     }
   }
 
+  function readSavedProviderIds(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(savedProvidersStorageKey) || '[]');
+      return Array.isArray(saved) ? saved.filter(id=>typeof id === 'string') : [];
+    }catch{
+      return [];
+    }
+  }
+
+  function writeSavedProviderIds(ids){
+    try{
+      localStorage.setItem(savedProvidersStorageKey, JSON.stringify(ids));
+      return true;
+    }catch{
+      return false;
+    }
+  }
+
+  function setFavoriteButtonState(button,isSaved){
+    button.textContent = isSaved ? '♥' : '♡';
+    const label = localizeText(isSaved ? 'Remove from saved pros' : 'Save provider');
+    button.setAttribute('aria-pressed', String(isSaved));
+    button.setAttribute('aria-label', label);
+    button.title = label;
+  }
+
+  function updateSavedProviderButtons(){
+    const savedIds = new Set(readSavedProviderIds());
+    document.querySelectorAll('.favorite-button').forEach(button=>{
+      setFavoriteButtonState(button, savedIds.has(button.dataset.serviceId));
+    });
+    document.getElementById('savedProvidersCount').textContent = String(savedIds.size);
+    document.getElementById('savedProvidersLabel').textContent = localizeText(showingSavedOnly ? 'Show all providers' : 'Saved pros');
+    document.getElementById('savedProvidersToggle').setAttribute('aria-pressed', String(showingSavedOnly));
+  }
+
+  function toggleSavedProvider(serviceId){
+    const savedIds = readSavedProviderIds();
+    const savedIndex = savedIds.indexOf(serviceId);
+    if(savedIndex >= 0) savedIds.splice(savedIndex, 1);
+    else savedIds.push(serviceId);
+    if(!writeSavedProviderIds(savedIds)){
+      document.getElementById('searchStatus').textContent = localizeText('Could not save this provider in browser storage.');
+      return;
+    }
+    updateSavedProviderButtons();
+    filterCards();
+  }
+
   function readReviews(){
     try{
       const saved = JSON.parse(localStorage.getItem(reviewStorageKey) || '[]');
@@ -1130,6 +1198,15 @@
     serviceCard.className = 'card user-service';
     serviceCard.dataset.serviceId = service.id;
     serviceCard.dataset.category = service.category.toLowerCase();
+    const favoriteButton = document.createElement('button');
+    favoriteButton.className = 'favorite-button';
+    favoriteButton.type = 'button';
+    favoriteButton.dataset.serviceId = service.id;
+    setFavoriteButtonState(favoriteButton, readSavedProviderIds().includes(service.id));
+    favoriteButton.addEventListener('click',()=>toggleSavedProvider(service.id));
+    const providerActions = document.createElement('div');
+    providerActions.className = 'provider-card-actions';
+    providerActions.append(favoriteButton);
     const icon = document.createElement('div');
     icon.className = 'icon';
     icon.textContent = '🛠️';
@@ -1231,7 +1308,7 @@
     reviewButton.type = 'button';
     reviewButton.textContent = localizeText('Write a review');
     reviewButton.addEventListener('click',()=>openReviewForm(service));
-    serviceCard.append(...providerDetails, ...ratingSummaries, reviewButton);
+    serviceCard.append(providerActions, ...providerDetails, ...ratingSummaries, reviewButton);
     if(serviceReviews.length){
       const reviewList = document.createElement('details');
       reviewList.className = 'review-list';
@@ -1311,7 +1388,18 @@
 
   document.getElementById('showAllCategories').addEventListener('click',()=>{
     selectedCategory = '';
+    showingSavedOnly = false;
     document.getElementById('search').value = '';
+    updateSavedProviderButtons();
+    updateCategoryResultsTitle();
+    filterCards();
+  });
+
+  document.getElementById('savedProvidersToggle').addEventListener('click',()=>{
+    showingSavedOnly = !showingSavedOnly;
+    if(showingSavedOnly) selectedCategory = '';
+    updateSavedProviderButtons();
+    updateCategoryResultsTitle();
     filterCards();
   });
 
@@ -1324,7 +1412,9 @@
       .map(card=>card.dataset.categoryName)
       .find(name=>name.toLowerCase() === categoryKey) || categoryKey;
     selectedCategory = category;
+    showingSavedOnly = false;
     document.getElementById('search').value = '';
+    updateSavedProviderButtons();
     updateCategoryResultsTitle();
     document.getElementById('categories').scrollIntoView({behavior:'smooth', block:'start'});
     filterCards();
@@ -1334,14 +1424,23 @@
     event.preventDefault();
     const form = event.currentTarget;
     selectedCategory = form.elements.category.value;
+    showingSavedOnly = false;
     document.getElementById('search').value = form.elements.area.value.trim();
+    updateSavedProviderButtons();
     updateCategoryResultsTitle();
     filterCards();
     document.getElementById('categories').scrollIntoView({behavior:'smooth', block:'start'});
   });
 
   function updateCategoryResultsTitle(){
-    if(!selectedCategory) return;
+    if(showingSavedOnly){
+      document.getElementById('categoryResultsTitle').textContent = localizeText('Saved pros');
+      return;
+    }
+    if(!selectedCategory){
+      document.getElementById('categoryResultsTitle').textContent = '';
+      return;
+    }
     const categoryLabel = localizeText(selectedCategory);
     document.getElementById('categoryResultsTitle').textContent = currentLanguage === 'ur'
       ? `${categoryLabel} کے ماہرین`
@@ -1435,35 +1534,45 @@
   function filterCards(){
     const query = document.getElementById('search').value.trim().toLowerCase();
     const cards = [...document.querySelectorAll('#cardGrid .card:not(.add)')];
+    const savedIds = new Set(readSavedProviderIds());
     let providerMatches = 0;
     let matches = 0;
     cards.forEach(card=>{
       const isProvider = card.classList.contains('user-service');
       const categoryMatches = !selectedCategory || (isProvider && card.dataset.category === selectedCategory.toLowerCase());
-      const visible = categoryMatches && (!query || card.innerText.toLowerCase().includes(query));
+      const savedMatches = !showingSavedOnly || (isProvider && savedIds.has(card.dataset.serviceId));
+      const visible = categoryMatches && savedMatches && (!query || card.innerText.toLowerCase().includes(query));
       card.hidden = !visible;
       if(visible){
         matches++;
         if(isProvider) providerMatches++;
       }
     });
-    document.getElementById('join').hidden = Boolean(query || selectedCategory);
-    document.getElementById('categoryResultsBar').hidden = !selectedCategory;
-    document.getElementById('emptyProviders').hidden = !selectedCategory || providerMatches > 0;
+    document.getElementById('join').hidden = Boolean(query || selectedCategory || showingSavedOnly);
+    document.getElementById('categoryResultsBar').hidden = !selectedCategory && !showingSavedOnly;
+    document.getElementById('emptyProviders').hidden = (!selectedCategory && !showingSavedOnly) || providerMatches > 0;
     const categoryLabel = localizeText(selectedCategory);
-    document.getElementById('emptyProvidersMessage').textContent = currentLanguage === 'ur'
+    const searchQuery = document.getElementById('search').value.trim();
+    document.getElementById('emptyProvidersMessage').textContent = showingSavedOnly
+      ? searchQuery
+        ? currentLanguage === 'ur' ? 'اس تلاش سے کوئی محفوظ ماہر نہیں ملا۔' : `No saved providers match “${searchQuery}”.`
+        : localizeText('No saved providers yet. Use the heart on a provider card to keep one here.')
+      : currentLanguage === 'ur'
       ? query ? `${categoryLabel} میں اس تلاش سے مطابقت رکھنے والا ماہر نہیں ملا۔` : `ابھی ${categoryLabel} کے ماہرین درج نہیں ہیں۔`
       : query
-        ? `No ${selectedCategory} providers match “${document.getElementById('search').value.trim()}”.`
+        ? `No ${selectedCategory} providers match “${searchQuery}”.`
         : localizeText(`No ${selectedCategory} providers are listed yet.`);
     document.getElementById('searchStatus').textContent = currentLanguage === 'ur'
       ? selectedCategory
         ? `${providerMatches} ماہرین ${categoryLabel} میں دستیاب ہیں۔`
-        : query ? `${matches} سروسز “${document.getElementById('search').value.trim()}” کے لیے ملیں۔` : ''
+        : showingSavedOnly ? `${providerMatches} محفوظ ماہرین دکھائے جا رہے ہیں۔`
+          : query ? `${matches} سروسز “${searchQuery}” کے لیے ملیں۔` : ''
       : selectedCategory
         ? `${providerMatches} ${providerMatches === 1 ? 'provider' : 'providers'} found in ${selectedCategory}.`
+        : showingSavedOnly
+          ? `${providerMatches} saved ${providerMatches === 1 ? 'provider' : 'providers'}${query ? ` found for “${searchQuery}”` : ' shown'}.`
         : query
-          ? `${matches} ${matches === 1 ? 'service' : 'services'} found for “${document.getElementById('search').value.trim()}”.`
+          ? `${matches} ${matches === 1 ? 'service' : 'services'} found for “${searchQuery}”.`
           : '';
   }
 
