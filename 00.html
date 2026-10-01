@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIXER — Every skill. One click. Fixed.</title>
+<style>
+  :root{
+    --teal:#0E7C7B; --teal-dark:#0A5C5B; --yellow:#FFC94D; --yellow-dark:#F5B301;
+    --ink:#12292B; --muted:#5B7376; --bg:#F6FAFA; --card:#FFFFFF; --radius:16px;
+    --shadow:0 6px 24px rgba(14,124,123,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  .container{max-width:1120px;margin:0 auto;padding:0 18px}
+  h1,h2,h3{line-height:1.2}
+  button{font:inherit;cursor:pointer;border:none}
+  input,select,textarea{font:inherit;width:100%;padding:12px 14px;border:1.5px solid #D7E5E5;border-radius:12px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,124,123,.15)}
+  label{font-size:.85rem;font-weight:600;color:var(--muted);display:block;margin:12px 0 4px}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid #E3EFEF}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{font-size:1.5rem;font-weight:800;color:var(--teal);letter-spacing:.5px}
+  .logo span{color:var(--yellow-dark)}
+  .nav-links{display:flex;gap:22px;align-items:center}
+  .nav-links a{text-decoration:none;color:var(--ink);font-weight:600;font-size:.95rem}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:700;font-size:.95rem;text-decoration:none;transition:transform .15s,box-shadow .15s}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:0 4px 14px rgba(14,124,123,.35)}
+  .btn-primary:hover{background:var(--teal-dark)}
+  .btn-accent{background:var(--yellow);color:var(--ink);box-shadow:0 4px 14px rgba(245,179,1,.35)}
+  .btn-accent:hover{background:var(--yellow-dark)}
+  .btn-ghost{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+  .btn-sm{padding:9px 16px;font-size:.85rem}
+  @media(max-width:640px){.nav-links a.hide-m{display:none}}
+
+  /* HERO */
+  .hero{background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);color:#fff;padding:64px 0 84px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-90px;top:-90px;width:320px;height:320px;border-radius:50%;background:rgba(255,201,77,.18)}
+  .hero::before{content:"";position:absolute;left:-60px;bottom:-120px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07)}
+  .hero h1{font-size:clamp(1.9rem,5.4vw,3.2rem);font-weight:800;margin-bottom:10px}
+  .hero .tagline{color:var(--yellow);font-weight:700;font-size:clamp(1rem,2.6vw,1.25rem);margin-bottom:26px}
+  .search-wrap{position:relative;max-width:640px;z-index:2}
+  .search-bar{display:flex;background:#fff;border-radius:999px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+  .search-bar input{border:none;border-radius:999px;padding:12px 18px;font-size:1rem}
+  .search-bar input:focus{box-shadow:none}
+  .search-bar .btn{border-radius:999px;white-space:nowrap}
+  .suggest{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.18);overflow:hidden;display:none;color:var(--ink);z-index:30}
+  .suggest.open{display:block}
+  .suggest div{padding:12px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .suggest div:hover{background:var(--bg)}
+  .suggest small{color:var(--muted)}
+  .hero-stats{display:flex;gap:28px;margin-top:30px;flex-wrap:wrap;z-index:2;position:relative}
+  .hero-stats b{font-size:1.4rem;display:block}
+  .hero-stats span{font-size:.85rem;opacity:.85}
+
+  /* SECTIONS */
+  section{padding:56px 0}
+  .sec-title{font-size:clamp(1.4rem,3.6vw,2rem);font-weight:800;margin-bottom:6px}
+  .sec-sub{color:var(--muted);margin-bottom:28px}
+
+  /* CATEGORIES */
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+  .cat-card{background:var(--card);border:1.5px solid #E3EFEF;border-radius:var(--radius);padding:20px 14px;text-align:center;cursor:pointer;transition:.18s;user-select:none}
+  .cat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--teal)}
+  .cat-card.active{border-color:var(--teal);background:#E8F5F5;box-shadow:var(--shadow)}
+  .cat-card .icon{font-size:2rem;margin-bottom:8px;display:block}
+  .cat-card b{font-size:.92rem;display:block}
+  .cat-card small{color:var(--muted);font-size:.74rem}
+
+  /* FILTERS */
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 18px}
+  .filters select{width:auto;min-width:150px;padding:9px 34px 9px 12px;font-size:.88rem;border-radius:999px}
+
+  /* PROVIDERS */
+  .prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+  .prov-card{background:var(--card);border:1.5px solid #E3EFEF;border-radius:var(--radius);padding:20px;transition:.18s}
+  .prov-card:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+  .prov-top{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+  .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--yellow));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.25rem;flex-shrink:0}
+  .prov-top b{display:block;font-size:1.02rem}
+  .prov-top small{color:var(--muted)}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .badge{background:#E8F5F5;color:var(--teal);font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px}
+  .stars{color:var(--yellow-dark);letter-spacing:1px;font-size:.9rem}
+  .rate-row{display:flex;justify-content:space-between;align-items:center;margin:10px 0 14px}
+  .rate{font-weight:800;color:var(--teal);font-size:1.05rem}
+  .rate small{color:var(--muted);font-weight:500}
+  .prov-actions{display:flex;gap:8px}
+  .prov-actions .btn{flex:1;padding:10px 8px;font-size:.85rem}
+  .empty{text-align:center;color:var(--muted);padding:40px 0;grid-column:1/-1}
+
+  /* HOW IT WORKS */
+  .how{background:linear-gradient(135deg,#0A5C5B,#0E7C7B);color:#fff}
+  .how .sec-sub{color:#BFE3E2}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+  .step{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:var(--radius);padding:26px 20px}
+  .step .num{width:42px;height:42px;border-radius:12px;background:var(--yellow);color:var(--ink);font-weight:800;font-size:1.2rem;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .step h3{margin-bottom:6px}
+  .step p{font-size:.9rem;color:#D9EFEE}
+
+  /* TESTIMONIALS */
+  .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+  .testi{background:var(--card);border:1.5px solid #E3EFEF;border-radius:var(--radius);padding:22px}
+  .testi p{font-size:.95rem;margin:10px 0 14px;font-style:italic;color:#33565A}
+  .testi b{font-size:.9rem}
+  .testi small{color:var(--muted);display:block}
+
+  /* CTA */
+  .cta{background:var(--yellow);border-radius:24px;padding:44px 26px;text-align:center;color:var(--ink)}
+  .cta h2{font-size:clamp(1.4rem,3.6vw,2rem);margin-bottom:8px}
+  .cta p{margin-bottom:22px;color:#6B5200}
+
+  footer{background:var(--ink);color:#B9CFD1;padding:34px 0;text-align:center;font-size:.85rem}
+  footer .logo{color:#fff}
+
+  /* MODAL */
+  .modal{position:fixed;inset:0;background:rgba(10,35,37,.6);display:none;align-items:flex-end;justify-content:center;z-index:100;padding:0}
+  .modal.open{display:flex}
+  .modal-card{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:26px 22px;animation:up .25s ease}
+  @media(min-width:640px){.modal{align-items:center;padding:20px}.modal-card{border-radius:22px}}
+  @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .modal-head h3{font-size:1.25rem}
+  .close-x{background:#EEF5F5;border-radius:50%;width:34px;height:34px;font-size:1.1rem;color:var(--ink)}
+  .portfolio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+  .portfolio div{aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#CDE7E7,#F7E9C6);display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+  .review{border-top:1px solid #EAF2F2;padding:10px 0;font-size:.88rem}
+  .review b{color:var(--teal)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:999px;font-size:.9rem;font-weight:600;opacity:0;transition:.3s;z-index:200;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .status-pill{display:inline-block;font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:999px}
+  .st-pending{background:#FFF3D6;color:#8A6A00}.st-confirmed{background:#D9F2E1;color:#1E7A45}
+  .booking-item{display:flex;justify-content:space-between;align-items:center;background:#F2F9F9;border-radius:12px;padding:12px 14px;margin-top:8px;font-size:.88rem;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <div class="logo">FIX<span>E</span>R</div>
+    <div class="nav-links">
+      <a href="#categories" class="hide-m">Categories</a>
+      <a href="#providers" class="hide-m">Find a Pro</a>
+      <a href="#how">How It Works</a>
+      <button class="btn btn-accent btn-sm" onclick="openRegister()">+ Add Your Service</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="container">
+    <h1>Every skill. One click. Fixed.</h1>
+    <div class="tagline">Find trusted local pros for any job — big or small.</div>
+    <div class="search-wrap">
+      <div class="search-bar">
+        <input id="searchInput" type="text" placeholder="What do you need fixed or built?" autocomplete="off" oninput="onSearch(this.value)" onfocus="onSearch(this.value)">
+        <button class="btn btn-accent" onclick="doSearch()">Search</button>
+      </div>
+      <div class="suggest" id="suggest"></div>
+    </div>
+    <div class="hero-stats">
+      <div><b id="statPros">0</b><span>Verified pros</span></div>
+      <div><b>4.8★</b><span>Average rating</span></div>
+      <div><b>&lt; 2 hrs</b><span>Avg. response</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- CATEGORIES -->
+<section id="categories">
+  <div class="container">
+    <h2 class="sec-title">Browse by category</h2>
+    <p class="sec-sub">Tap a category to see available pros near you.</p>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
+</section>
+
+<!-- PROVIDERS -->
+<section id="providers" style="padding-top:0">
+  <div class="container">
+    <h2 class="sec-title">Available pros</h2>
+    <p class="sec-sub">Compare ratings, rates, and availability — then book in seconds.</p>
+    <div class="filters">
+      <select id="fRating" onchange="renderProviders()">
+        <option value="0">Any rating</option><option value="4">4.0★ & up</option><option value="4.5">4.5★ & up</option>
+      </select>
+      <select id="fPrice" onchange="renderProviders()">
+        <option value="999">Any price</option><option value="50">Under $50/hr</option><option value="80">Under $80/hr</option>
+      </select>
+      <select id="fExp" onchange="renderProviders()">
+        <option value="0">Any experience</option><option value="5">5+ years</option><option value="10">10+ years</option>
+      </select>
+      <select id="fAvail" onchange="renderProviders()">
+        <option value="any">Any availability</option><option value="today">Available today</option>
+      </select>
+    </div>
+    <div class="prov-grid" id="provGrid"></div>
+    <h3 style="margin-top:34px">My bookings</h3>
+    <div id="bookings"><p class="sec-sub" style="margin:6px 0 0">No bookings yet — book a pro above.</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="container">
+    <h2 class="sec-title">How it works</h2>
+    <p class="sec-sub">From "broken" to "fixed" in three simple steps.</p>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>Search</h3><p>Tell us what you need — electrician, plumber, painter, anything.</p></div>
+      <div class="step"><div class="num">2</div><h3>Compare</h3><p>Check profiles, portfolios, reviews, and rates side by side.</p></div>
+      <div class="step"><div class="num">3</div><h3>Book</h3><p>Pick a time, describe the job, and confirm instantly.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="container">
+    <h2 class="sec-title">What customers say</h2>
+    <p class="sec-sub">Real jobs, real reviews, really fixed.</p>
+    <div class="testi-grid">
+      <div class="testi"><div class="stars">★★★★★</div><p>"Booked an electrician at 9am, my kitchen outlets were fixed by noon. Incredible."</p><b>Maria T.</b><small>Homeowner · Electrical</small></div>
+      <div class="testi"><div class="stars">★★★★★</div><p>"The carpenter rebuilt our deck beautifully. Portfolio photos matched the real work exactly."</p><b>James K.</b><small>Homeowner · Carpentry</small></div>
+      <div class="testi"><div class="stars">★★★★☆</div><p>"Found a same-day plumber through FIXER during a pipe emergency. Lifesaver."</p><b>Priya S.</b><small>Renter · Plumbing</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding-top:0">
+  <div class="container">
+    <div class="cta">
+      <h2>Got a skill? Get hired.</h2>
+      <p>Join thousands of local pros listing their services on FIXER. Free to sign up.</p>
+      <button class="btn btn-primary" onclick="openRegister()">Add Your Service →</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="logo">FIX<span style="color:var(--yellow)">E</span>R</div>
+    <p style="margin-top:8px">Every skill. One click. Fixed. · © 2026 FIXER</p>
+  </div>
+</footer>
+
+<!-- PROFILE MODAL -->
+<div class="modal" id="profileModal" onclick="if(event.target===this)closeModal('profileModal')">
+  <div class="modal-card" id="profileBody"></div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal" id="bookModal" onclick="if(event.target===this)closeModal('bookModal')">
+  <div class="modal-card">
+    <div class="modal-head"><h3 id="bookTitle">Book</h3><button class="close-x" onclick="closeModal('bookModal')">✕</button></div>
+    <label>Date</label><input type="date" id="bkDate">
+    <label>Time</label><input type="time" id="bkTime" value="09:00">
+    <label>Describe the job</label><textarea id="bkDesc" rows="3" placeholder="e.g. Fix leaking kitchen sink, replace faucet..."></textarea>
+    <button class="btn btn-primary" style="width:100%;margin-top:18px" onclick="confirmBooking()">Confirm Booking</button>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="modal" id="regModal" onclick="if(event.target===this)closeModal('regModal')">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Add Your Service</h3><button class="close-x" onclick="closeModal('regModal')">✕</button></div>
+    <p class="sec-sub" style="margin-bottom:0">List your trade — it's free and takes a minute.</p>
+    <label>Full name</label><input id="rgName" placeholder="e.g. Alex Rivera">
+    <label>Trade / Skill</label>
+    <select id="rgCat" onchange="toggleOther()"></select>
+    <div id="otherWrap" style="display:none"><label>Your custom category</label><input id="rgOther" placeholder="e.g. Pool Cleaning, Drone Repair..."></div>
+    <label>Experience (years)</label><input id="rgExp" type="number" min="0" max="60" placeholder="e.g. 6">
+    <label>Hourly rate ($)</label><input id="rgRate" type="number" min="1" placeholder="e.g. 45">
+    <label>Service area</label><input id="rgArea" placeholder="e.g. Downtown, Riverside">
+    <label>Phone</label><input id="rgPhone" type="tel" placeholder="e.g. (555) 010-2233">
+    <button class="btn btn-primary" style="width:100%;margin-top:18px" onclick="submitRegister()">Create My Listing</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATEGORIES = [
+  {id:"construction",icon:"🏗️",name:"Construction",sub:"Engineers, masons, painters"},
+  {id:"carpentry",icon:"🔨",name:"Carpentry",sub:"Furniture, doors, woodwork"},
+  {id:"electrical",icon:"⚡",name:"Electrical",sub:"Wiring, appliances, repair"},
+  {id:"plumbing",icon:"🔧",name:"Plumbing",sub:"Pipes, bathrooms, kitchens"},
+  {id:"agriculture",icon:"🌾",name:"Agriculture & Farming",sub:"Farm work, landscaping"},
+  {id:"cleaning",icon:"🧹",name:"House Cleaning",sub:"Housekeeping, deep cleans"},
+  {id:"interior",icon:"🎨",name:"Interior Design & Painting",sub:"Decor, wall finishes"},
+  {id:"acrepair",icon:"❄️",name:"AC / Fridge Repair",sub:"Cooling systems, appliances"},
+  {id:"locksmith",icon:"🔒",name:"Locksmith & Security",sub:"Locks, cameras, safes"},
+  {id:"auto",icon:"🚗",name:"Auto Mechanics",sub:"Vehicle repair, maintenance"},
+  {id:"catering",icon:"👨‍🍳",name:"Cooks & Catering",sub:"Chefs, event staff"},
+  {id:"movers",icon:"📦",name:"Packers & Movers",sub:"Moving, packing, hauling"},
+  {id:"labor",icon:"👷",name:"General Labor",sub:"Helpers, site work"},
+];
+
+let providers = [
+  {id:1,name:"Sam Okafor",cat:"electrical",skills:["Wiring","Appliance repair"],exp:9,rate:55,rating:4.8,today:true,area:"Downtown",reviews:[["Dana R.","Rewired our whole basement. Neat, fast, fairly priced."]]},
+  {id:2,name:"Luis Mendez",cat:"plumbing",skills:["Pipe fitting","Bathroom repair"],exp:12,rate:65,rating:4.9,today:true,area:"Riverside",reviews:[["Kim L.","Fixed a nightmare leak other plumbers gave up on."]]},
+  {id:3,name:"Ana Petrova",cat:"carpentry",skills:["Furniture","Custom shelving"],exp:7,rate:48,rating:4.7,today:false,area:"Old Town",reviews:[["Omar B.","Built a gorgeous oak dining table. True craft."]]},
+  {id:4,name:"Grace Mwangi",cat:"cleaning",skills:["Deep clean","Housekeeping"],exp:5,rate:30,rating:4.6,today:true,area:"Uptown",reviews:[["Sofia P.","Our apartment has never looked this good."]]},
+  {id:5,name:"Tom Reilly",cat:"auto",skills:["Engine diagnostics","Brakes"],exp:15,rate:70,rating:4.8,today:false,area:"Eastside",reviews:[["Vik J.","Diagnosed in 20 minutes what two shops missed."]]},
+  {id:6,name:"Elena Vargas",cat:"interior",skills:["Painting","Decor"],exp:8,rate:52,rating:4.7,today:true,area:"Downtown",reviews:[["Nora H.","Transformed our living room in one weekend."]]},
+  {id:7,name:"David Kim",cat:"acrepair",skills:["AC install","Fridge repair"],exp:10,rate:60,rating:4.9,today:true,area:"Midtown",reviews:[["Leo F.","AC died in a heatwave — David saved the day."]]},
+  {id:8,name:"Ravi Patel",cat:"construction",skills:["Masonry","Renovation"],exp:14,rate:75,rating:4.8,today:false,area:"Westend",reviews:[["Amy C.","Our extension is solid and beautifully finished."]]},
+  {id:9,name:"Fatou Diallo",cat:"agriculture",skills:["Landscaping","Gardening"],exp:6,rate:35,rating:4.5,today:true,area:"Green Valley",reviews:[["Marc T.","Our garden is now the envy of the street."]]},
+];
+
+let activeCat = null, searchTerm = "", bookings = [], bookingId = 0, currentBookProv = null;
+
+function catName(id){const c=CATEGORIES.find(c=>c.id===id);return c?c.name:id;}
+
+function renderCats(){
+  document.getElementById('catGrid').innerHTML = CATEGORIES.map(c=>
+    `<div class="cat-card ${activeCat===c.id?'active':''}" onclick="pickCat('${c.id}')">
+      <span class="icon">${c.icon}</span><b>${c.name}</b><small>${c.sub}</small>
+    </div>`).join('');
+}
+
+function pickCat(id){ activeCat = (activeCat===id)?null:id; renderCats(); renderProviders();
+  if(activeCat) document.getElementById('providers').scrollIntoView({behavior:'smooth'}); }
+
+function stars(r){ const f=Math.round(r); return "★".repeat(f)+"☆".repeat(5-f); }
+
+function renderProviders(){
+  const minR=+document.getElementById('fRating').value, maxP=+document.getElementById('fPrice').value,
+        minE=+document.getElementById('fExp').value, av=document.getElementById('fAvail').value;
+  let list = providers.filter(p=>
+    (!activeCat || p.cat===activeCat) &&
+    p.rating>=minR && p.rate<=maxP && p.exp>=minE &&
+    (av==='any' || p.today) &&
+    (!searchTerm || (p.name+" "+p.skills.join(" ")+" "+catName(p.cat)).toLowerCase().includes(searchTerm))
+  );
+  document.getElementById('statPros').textContent = providers.length;
+  const g=document.getElementById('provGrid');
+  g.innerHTML = list.length ? list.map(p=>
+    `<div class="prov-card">
+      <div class="prov-top"><div class="avatar">${p.name.split(' ').map(w=>w[0]).join('')}</div>
+        <div><b>${p.name}</b><small>${catName(p.cat)} · ${p.area}</small></div></div>
+      <div class="badges">${p.skills.map(s=>`<span class="badge">${s}</span>`).join('')}<span class="badge">${p.exp} yrs</span></div>
+      <div class="rate-row"><span class="stars">${stars(p.rating)} <small style="color:var(--muted)">${p.rating}</small></span>
+        <span class="rate">$${p.rate}<small>/hr</small></span></div>
+      <div class="prov-actions">
+        <button class="btn btn-primary btn-sm" onclick="openBook(${p.id})">Book Now</button>
+        <button class="btn btn-ghost btn-sm" onclick="openProfile(${p.id})">Profile</button>
+      </div>
+    </div>`).join('')
+  : `<div class="empty">No pros match those filters. Try widening your search — or <a href="#" onclick="openRegister();return false" style="color:var(--teal);font-weight:700">be the first to list this service</a>.</div>`;
+}
+
+function openProfile(id){
+  const p=providers.find(x=>x.id===id);
+  document.getElementById('profileBody').innerHTML=`
+    <div class="modal-head"><h3>${p.name}</h3><button class="close-x" onclick="closeModal('profileModal')">✕</button></div>
+    <div class="prov-top"><div class="avatar" style="width:64px;height:64px;font-size:1.5rem">${p.name.split(' ').map(w=>w[0]).join('')}</div>
+      <div><span class="stars">${stars(p.rating)} ${p.rating}</span><br><small>${catName(p.cat)} · ${p.exp} years experience · ${p.area}</small></div></div>
+    <div class="badges">${p.skills.map(s=>`<span class="badge">${s}</span>`).join('')}
+      <span class="badge" style="background:${p.today?'#D9F2E1':'#F1F1F1'};color:${p.today?'#1E7A45':'#666'}">${p.today?'✓ Available today':'Book ahead'}</span></div>
+    <label style="margin-top:8px">Portfolio</label>
+    <div class="portfolio"><div>🖼️</div><div>🖼️</div><div>🖼️</div></div>
+    <label>Reviews</label>
+    ${p.reviews.map(r=>`<div class="review"><b>${r[0]}</b> — ${r[1]}</div>`).join('')}
+    <div class="prov-actions" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="closeModal('profileModal');openBook(${p.id})">Book Now · $${p.rate}/hr</button>
+      <a class="btn btn-ghost" href="tel:+15550100${p.id}${p.id}">📞 Contact</a>
+    </div>`;
+  document.getElementById('profileModal').classList.add('open');
+}
+
+function openBook(id){
+  currentBookProv=providers.find(x=>x.id===id);
+  document.getElementById('bookTitle').textContent="Book "+currentBookProv.name;
+  const d=new Date(); d.setDate(d.getDate()+1);
+  document.getElementById('bkDate').value=d.toISOString().slice(0,10);
+  document.getElementById('bookModal').classList.add('open');
+}
+
+function confirmBooking(){
+  const dt=document.getElementById('bkDate').value, tm=document.getElementById('bkTime').value,
+        desc=document.getElementById('bkDesc').value.trim();
+  if(!dt||!tm){toast("Please pick a date and time.");return;}
+  bookings.push({id:++bookingId,prov:currentBookProv,dt,tm,desc,status:"Pending"});
+  closeModal('bookModal');
+  document.getElementById('bkDesc').value="";
+  renderBookings();
+  toast(`Booking requested with ${currentBookProv.name}! Status: Pending → they'll confirm shortly.`);
+}
+
+function renderBookings(){
+  const el=document.getElementById('bookings');
+  if(!bookings.length){el.innerHTML='<p class="sec-sub" style="margin:6px 0 0">No bookings yet — book a pro above.</p>';return;}
+  el.innerHTML=bookings.map(b=>
+    `<div class="booking-item"><div><b>${b.prov.name}</b> · ${catName(b.prov.cat)}<br>
+      <small style="color:var(--muted)">${b.dt} at ${b.tm}${b.desc?" — "+b.desc:""}</small></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="status-pill st-${b.status.toLowerCase()}">${b.status}</span>
+        ${b.status==="Pending"?`<button class="btn btn-primary btn-sm" onclick="advance(${b.id})">Confirm</button>`:""}
+      </div></div>`).join('');
+}
+
+function advance(id){
+  const b=bookings.find(x=>x.id===id);
+  b.status = b.status==="Pending" ? "Confirmed" : "Completed";
+  renderBookings(); toast(`Booking ${b.status.toLowerCase()}! ${b.status==="Confirmed"?"You're on the schedule.":"Nice — job done. ⭐"}`);
+}
+
+function openRegister(){
+  document.getElementById('regModal').classList.add('open');
+}
+function toggleOther(){
+  document.getElementById('otherWrap').style.display =
+    document.getElementById('rgCat').value==="__other" ? "block" : "none";
+}
+function submitRegister(){
+  const name=document.getElementById('rgName').value.trim(),
+        catSel=document.getElementById('rgCat').value,
+        exp=+document.getElementById('rgExp').value||1,
+        rate=+document.getElementById('rgRate').value||40;
+  if(!name){toast("Please enter your name.");return;}
+  let cat=catSel;
+  if(cat==="__other"){
+    const custom=document.getElementById('rgOther').value.trim();
+    if(!custom){toast("Please name your custom category.");return;}
+    cat="custom_"+custom.toLowerCase().replace(/[^a-z0-9]+/g,'_');
+    if(!CATEGORIES.find(c=>c.id===cat)) CATEGORIES.push({id:cat,icon:"🛠️",name:custom,sub:"New on FIXER"});
+    renderCats(); fillRegCats();
+  }
+  providers.push({id:Date.now(),name,cat,skills:["New pro"],exp,rate,rating:5.0,today:true,
+    area:document.getElementById('rgArea').value.trim()||"Your area",reviews:[]});
+  closeModal('regModal'); renderProviders();
+  ["rgName","rgOther","rgExp","rgRate","rgArea","rgPhone"].forEach(i=>document.getElementById(i).value="");
+  toast(`Welcome to FIXER, ${name}! Your listing is live. 🎉`);
+  document.getElementById('providers').scrollIntoView({behavior:'smooth'});
+}
+
+function fillRegCats(){
+  document.getElementById('rgCat').innerHTML =
+    CATEGORIES.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('') +
+    `<option value="__other">➕ Other / Not Listed</option>`;
+}
+
+function onSearch(v){
+  const q=v.trim().toLowerCase(), box=document.getElementById('suggest');
+  if(!q){box.classList.remove('open');return;}
+  const svc=CATEGORIES.filter(c=>c.name.toLowerCase().includes(q)).slice(0,6);
+  const pros=providers.filter(p=>(p.name+" "+p.skills.join(" ")).toLowerCase().includes(q)).slice(0,4);
+  if(!svc.length&&!pros.length){box.classList.remove('open');return;}
+  box.innerHTML =
+    svc.map(c=>`<div onclick="pickCat('${c.id}');document.getElementById('suggest').classList.remove('open');document.getElementById('searchInput').value='${c.name}'"><span>${c.icon} ${c.name}</span><small>category</small></div>`).join('')+
+    pros.map(p=>`<div onclick="openProfile(${p.id});document.getElementById('suggest').classList.remove('open')"><span>👤 ${p.name}</span><small>${catName(p.cat)}</small></div>`).join('');
+  box.classList.add('open');
+}
+function doSearch(){
+  searchTerm=document.getElementById('searchInput').value.trim().toLowerCase();
+  document.getElementById('suggest').classList.remove('open');
+  renderProviders();
+  document.getElementById('providers').scrollIntoView({behavior:'smooth'});
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap')) document.getElementById('suggest').classList.remove('open');
+});
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+let toastT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3800);}
+
+fillRegCats(); renderCats(); renderProviders();
+</script>
+</body>
+</html>

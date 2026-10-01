@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIXER — Every Skill. One Click. Fixed.</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#0f766e; --teal-dark:#134e4a; --teal-deep:#0b3b38;
+    --yellow:#ffd54f; --yellow-btn:#ffca28; --yellow-dark:#f5b800;
+    --dark:#13201f; --grey:#f4f7f6; --text:#3d4a49;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'DM Sans',sans-serif;}
+  h1,h2,h3,.logo{font-family:'Manrope',sans-serif;}
+  html[lang="ur"] *{font-family:'Noto Nastaliq Urdu',serif!important;}
+  html[lang="ur"] body{line-height:2;}
+  html[lang="ur"] .logo{font-family:'Manrope',sans-serif!important;direction:ltr;}
+  html[lang="ur"] h1,html[lang="ur"] h2,html[lang="ur"] h3{line-height:2.1;}
+  html[lang="ur"] .review-list{text-align:right;}
+  html[lang="ur"] .dialog-actions{flex-direction:row-reverse;}
+  body{color:var(--text);background:#fff;}
+
+  /* ---------- NAVBAR ---------- */
+    nav{position:sticky;top:0;z-index:100;display:flex;justify-content:flex-start;align-items:center;gap:48px;
+      padding:14px 5%;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+  .logo{font-size:1.9rem;font-weight:900;color:var(--teal-dark);letter-spacing:-1px;}
+  .logo span{color:var(--yellow-dark);}
+  nav ul{display:flex;gap:clamp(16px,1.8vw,24px);margin-left:auto;list-style:none;align-items:center;}
+  nav a{text-decoration:none;color:var(--dark);font-weight:600;font-size:.95rem;transition:color .2s;}
+  nav a:hover{color:var(--teal);}
+  nav .btn-y{font:inherit;font-size:.95rem;}
+  nav button.nav-auth{display:inline-flex;align-items:center;gap:8px;padding:10px 4px;border:0;background:transparent;color:var(--dark);font:inherit;font-size:.95rem;font-weight:600;cursor:pointer;}
+  nav button.nav-auth:hover{color:var(--teal);}
+  nav .auth-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  nav .btn-y{display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+  #accountNavItem{display:flex;align-items:center;gap:12px;}
+  #accountNavItem[hidden]{display:none;}
+  .account-label{color:var(--teal-dark);font-size:.9rem;font-weight:700;}
+  .language-control select{min-height:40px;padding:7px 10px;border:1px solid #cbd8d6;border-radius:6px;background:#fff;color:var(--dark);font:inherit;font-size:.9rem;cursor:pointer;}
+  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  .btn-y{background:var(--yellow-btn);color:var(--teal-dark);padding:11px 24px;border-radius:50px;
+         font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:.25s;display:inline-block;}
+  .btn-y:hover{background:var(--yellow-dark);color:#000;transform:translateY(-2px);box-shadow:0 6px 16px rgba(255,202,40,.5);}
+  .hamburger{display:none;font-size:1.6rem;background:none;border:none;cursor:pointer;}
+
+  /* ---------- HERO (background pic like inDrive) ---------- */
+  .hero{position:relative;min-height:88vh;display:flex;align-items:center;color:#fff;
+        background:linear-gradient(rgba(11,59,56,.82),rgba(11,59,56,.65)),
+        url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;}
+  .hero-inner{padding:90px 6%;max-width:900px;}
+  .hero h1{font-size:3.4rem;font-weight:800;line-height:1.15;}
+  .hero h1 em{font-style:normal;color:var(--yellow);}
+  .hero .tagline{margin:18px 0 36px;font-size:1.35rem;font-weight:600;color:var(--yellow);}
+  .search-bar{display:flex;max-width:640px;background:#fff;border-radius:60px;overflow:hidden;
+              box-shadow:0 12px 34px rgba(0,0,0,.35);}
+  .search-bar input{flex:1;border:none;outline:none;padding:20px 28px;font-size:1.05rem;}
+  .search-bar button{background:var(--yellow-btn);border:none;color:var(--teal-dark);padding:0 44px;
+                     font-weight:800;font-size:1.05rem;cursor:pointer;transition:.2s;}
+  .search-bar button:hover{background:var(--yellow-dark);}
+  .stats{display:flex;gap:60px;margin-top:56px;flex-wrap:wrap;}
+  .stats div h2{font-size:2rem;font-weight:800;color:var(--yellow);}
+  .stats div p{font-size:.95rem;opacity:.9;}
+  .smart-match{padding:44px 6%;background:var(--grey);}
+  .smart-match-inner{max-width:1000px;margin:0 auto;}
+  .smart-match .section-title{margin-bottom:8px;}
+  .smart-match .section-sub{margin-bottom:24px;}
+  .matcher-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:14px;}
+  .matcher-form label{display:grid;gap:6px;color:var(--dark);font-size:.88rem;font-weight:600;}
+  .matcher-form input,.matcher-form select{width:100%;min-height:46px;padding:10px 12px;border:1px solid #cbd8d6;border-radius:6px;background:#fff;color:var(--dark);font:inherit;}
+  .matcher-form input:focus,.matcher-form select:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .matcher-form button{min-height:46px;padding:10px 18px;border:0;border-radius:6px;background:var(--teal);color:#fff;font:inherit;font-weight:700;cursor:pointer;}
+  .matcher-form button:hover{background:var(--teal-dark);}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:80px 6%;}
+  .section-title{text-align:center;font-size:2.1rem;font-weight:800;color:var(--teal-dark);margin-bottom:10px;}
+  .section-sub{text-align:center;color:#7a8a88;margin-bottom:48px;}
+  .about-copy{max-width:760px;margin:0 auto;color:var(--text);text-align:center;line-height:1.8;}
+  .about-developer{margin:20px auto 0;text-align:center;color:var(--teal-dark);font-weight:600;}
+  .demo-notice{max-width:760px;margin:-34px auto 38px;text-align:center;color:#6d5d29;font-size:.84rem;}
+  .category-results-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;max-width:1150px;margin:0 auto 20px;}
+  .category-results-bar[hidden]{display:none;}
+  .category-results-bar h3{color:var(--teal-dark);font-size:1.2rem;}
+  .category-results-bar button,.empty-providers button{padding:9px 14px;border:1px solid var(--teal);border-radius:6px;background:#fff;color:var(--teal-dark);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;}
+  .empty-providers{max-width:700px;margin:24px auto;padding:20px;border-left:4px solid var(--yellow-dark);background:#fffbe6;text-align:center;}
+  .empty-providers p{margin-bottom:12px;color:var(--text);}
+
+  /* ---------- CATEGORY GRID ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;max-width:1150px;margin:0 auto;}
+  .card{background:#fff;border-radius:18px;padding:30px 22px;text-align:center;
+        box-shadow:0 4px 14px rgba(0,0,0,.07);transition:.25s;border:1px solid #e8efee;border-top:4px solid transparent;}
+  .card:hover{transform:translateY(-6px);box-shadow:0 14px 30px rgba(15,118,110,.18);border-top-color:var(--yellow-btn);}
+  .card .icon{font-size:2.7rem;margin-bottom:14px;}
+  .card h3{font-size:1.08rem;color:var(--dark);margin-bottom:6px;}
+  .card p{font-size:.85rem;color:#8a9a98;margin-bottom:16px;}
+  .card a{color:var(--teal);font-weight:700;font-size:.88rem;text-decoration:none;}
+  .card a:hover{color:var(--yellow-dark);}
+  .card .request-link{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:16px;padding:10px 14px;border-radius:6px;background:var(--teal);color:#fff;font-size:.9rem;font-weight:700;text-decoration:none;transition:background .2s,transform .2s;}
+  .card .request-link:hover{transform:translateY(-1px);background:var(--teal-dark);color:#fff;}
+  .card .request-link:focus-visible{outline:3px solid var(--yellow-dark);outline-offset:3px;}
+  .provider-meta{font-size:.82rem!important;color:#526462!important;margin-bottom:8px!important;overflow-wrap:anywhere;}
+  .provider-photo{display:block;width:84px;height:84px;margin:0 auto 12px;border:3px solid #d7e7e4;border-radius:50%;object-fit:cover;background:#edf2f1;}
+  .provider-name{color:var(--teal-dark)!important;font-weight:700;font-size:.9rem!important;margin-bottom:4px!important;}
+  .demo-tag{display:inline-block;margin:0 auto 8px;padding:4px 8px;border-radius:4px;background:#fff3c4;color:#6d5d29;font-size:.7rem;font-weight:800;}
+  .demo-avatar{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;background:var(--teal);}
+  .demo-rating{color:#6d5d29!important;}
+  .photo-preview{display:flex;align-items:center;gap:12px;color:#71817f;font-size:.82rem;font-weight:400;}
+  .photo-preview img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #d7e7e4;}
+  .service-form input[type="file"]{padding:9px;background:#f7faf9;}
+  .rating-summary{margin:12px 0 6px;color:#8a6d00;font-size:.88rem;font-weight:700;}
+  .review-link{padding:0;border:0;background:none;color:var(--teal);font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
+  .review-link:hover{text-decoration:underline;}
+  .review-list{margin-top:10px;text-align:left;}
+  .review-list summary{color:var(--teal);font-size:.82rem;font-weight:600;cursor:pointer;}
+  .review-entry{padding:10px 0;border-bottom:1px solid #e8efee;font-size:.8rem;}
+  .review-entry strong{color:var(--dark);}
+  .review-entry .review-stars{color:#8a6d00;}
+  .review-entry p{margin:4px 0 0;color:#526462;overflow-wrap:anywhere;}
+  .search-status{min-height:1.5em;margin:20px auto 0;text-align:center;color:var(--teal-dark);font-weight:600;}
+  .card.add{background:linear-gradient(135deg,#fffbe6,#fff3c4);border:2px dashed var(--yellow-dark);}
+  .card.add h3{color:#8a6d00;}
+  .card.add button{padding:0;border:0;background:none;color:#8a6d00;font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;}
+  .card.add button:hover{color:var(--teal);}
+  .service-dialog{width:min(520px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;padding:32px;border:0;border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.28);overflow:auto;}
+  .service-dialog::backdrop{background:rgba(11,59,56,.68);}
+  .service-dialog h2{color:var(--teal-dark);margin-bottom:6px;}
+  .service-dialog p{color:#71817f;margin-bottom:22px;font-size:.92rem;}
+  .service-form{display:grid;gap:14px;}
+  .service-form[hidden]{display:none;}
+  .service-form label{display:grid;gap:6px;color:var(--dark);font-size:.88rem;font-weight:600;}
+  .service-form input,.service-form textarea{width:100%;padding:11px 12px;border:1px solid #cbd8d6;border-radius:6px;font:inherit;font-size:.92rem;}
+  .service-form textarea{min-height:96px;resize:vertical;}
+  .service-form select{width:100%;padding:11px 12px;border:1px solid #cbd8d6;border-radius:6px;background:#fff;font:inherit;font-size:.92rem;}
+  .service-form input:focus,.service-form textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .service-form select:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .service-form input[type="number"]{appearance:textfield;}
+  .service-form .field-hint{color:#71817f;font-size:.78rem;font-weight:400;}
+  .request-dialog{width:min(520px,calc(100% - 32px));}
+  .review-dialog{width:min(520px,calc(100% - 32px));}
+  .auth-dialog{width:min(460px,calc(100% - 32px));}
+  .auth-message{min-height:1.4em;margin:12px 0;color:#9a3b2b;font-size:.86rem;}
+  .auth-disclaimer{margin:10px 0 18px!important;color:#71817f!important;font-size:.78rem!important;}
+  .request-confirmation{display:none;margin-top:18px;padding:14px;background:#edf7f4;border-left:4px solid var(--teal);color:var(--teal-dark);font-size:.92rem;}
+  .request-confirmation a{display:inline-block;margin-top:8px;color:var(--teal-dark);font-weight:700;}
+  .privacy-dialog{width:min(520px,calc(100% - 32px));}
+  .privacy-dialog p{margin:12px 0;color:var(--text);}
+  .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
+  .dialog-actions button{padding:10px 18px;border:0;border-radius:6px;font:inherit;font-weight:700;cursor:pointer;}
+  .dialog-actions .cancel{background:#edf2f1;color:var(--dark);}
+  .dialog-actions .submit{background:var(--yellow-btn);color:var(--teal-dark);}
+
+  /* ---------- HOW IT WORKS ---------- */
+  .how{background:var(--grey);}
+  .steps{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;max-width:1050px;margin:0 auto;}
+  .step{flex:1;min-width:250px;background:#fff;border-radius:18px;padding:38px 26px;text-align:center;
+        box-shadow:0 4px 14px rgba(0,0,0,.06);border-bottom:4px solid var(--teal);}
+  .step .num{width:54px;height:54px;border-radius:50%;background:var(--yellow-btn);color:var(--teal-dark);font-weight:800;
+             display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:1.25rem;}
+  .step h3{color:var(--dark);margin-bottom:8px;}
+  .step p{font-size:.9rem;color:#7a8a88;}
+
+  /* ---------- CTA / CONTACT (inDrive style bg pic) ---------- */
+  .cta{position:relative;color:#fff;text-align:center;
+       background:linear-gradient(rgba(11,59,56,.85),rgba(11,59,56,.7)),
+       url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1920&q=80') center/cover fixed;}
+  .cta h2{font-size:2.6rem;font-weight:800;}
+  .cta h2 mark{background:var(--yellow);color:var(--teal-dark);padding:0 14px;}
+  .cta p{opacity:.95;margin:16px auto 30px;max-width:520px;font-size:1.05rem;}
+  .cta .btn-y{font-size:1.05rem;padding:14px 38px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{background:var(--teal-deep);color:#9fc4c0;padding:48px 6% 24px;}
+  .footer-grid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:32px;max-width:1150px;margin:0 auto;}
+  footer h4{color:#fff;margin-bottom:14px;}
+  footer a,footer button{display:block;color:#9fc4c0;text-decoration:none;font:inherit;font-size:.9rem;margin-bottom:9px;transition:.2s;background:none;border:0;cursor:pointer;}
+  footer a:hover,footer button:hover{color:var(--yellow);}
+  footer .developer-details{margin:0 0 10px;color:#9fc4c0;font-size:.9rem;}
+  footer .developer-details strong{color:#fff;}
+  .copyright{text-align:center;margin-top:36px;font-size:.82rem;color:#5d8a86;border-top:1px solid #1a5c57;padding-top:20px;}
+
+  /* ---------- MOBILE ---------- */
+  @media(max-width:1250px){
+    nav ul{position:fixed;top:62px;right:-100%;flex-direction:column;background:#fff;width:min(360px,88vw);height:calc(100vh - 62px);overflow-y:auto;
+           padding:32px;box-shadow:-4px 0 20px rgba(0,0,0,.15);transition:right .3s;}
+    nav ul.open{right:0;}
+    .hamburger{display:block;}
+  }
+  @media(max-width:768px){
+    .hero-inner{width:100%;min-width:0;}
+    .hero h1{font-size:2rem;}
+    .hero .tagline{font-size:1.05rem;}
+    .stats{gap:28px;}
+    .search-bar input{min-width:0;padding:15px 18px;font-size:.9rem;}
+    .search-bar button{padding:0 24px;}
+    .matcher-form{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">FIX<span>E</span>R</div>
+  <ul id="menu">
+    <li><a href="#categories">Categories</a></li>
+    <li><a href="#categories">Find a Pro</a></li>
+    <li><a href="#about">About Us</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li class="language-control"><label for="languageSelector" class="visually-hidden">Language</label><select id="languageSelector" aria-label="Language"><option value="en">English</option><option value="ur">اردو</option></select></li>
+    <li id="loginNavItem"><button type="button" class="nav-auth" onclick="openAuth('login')"><svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log in</span></button></li>
+    <li id="registerNavItem"><button type="button" class="btn-y" onclick="openAuth('register')"><svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg><span>Create account</span></button></li>
+    <li id="accountNavItem" hidden><span class="account-label" id="accountName"></span><button type="button" class="nav-auth" id="logoutButton">Log out</button></li>
+    <li><button type="button" class="btn-y" onclick="openServiceForm()">+ Add Your Service</button></li>
+  </ul>
+  <button class="hamburger" type="button" aria-label="Open navigation menu" aria-expanded="false" onclick="toggleMenu(this)">☰</button>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <h1>Every skill. One click. <em>Fixed.</em></h1>
+    <p class="tagline">Find trusted local pros for any job — big or small.</p>
+    <form class="search-bar" id="searchForm" role="search">
+      <input type="search" id="search" aria-label="Search services" placeholder="What do you need fixed or built?">
+      <button type="submit">Search</button>
+    </form>
+    <div class="stats">
+      <div><h2>500+</h2><p>Vetted pros</p></div>
+      <div><h2>4.8★</h2><p>Average rating</p></div>
+      <div><h2>&lt; 2 hrs</h2><p>Avg. response</p></div>
+    </div>
+  </div>
+</header>
+
+<section class="smart-match" aria-labelledby="matcherTitle">
+  <div class="smart-match-inner">
+    <h2 class="section-title" id="matcherTitle">Find the right pro for your job</h2>
+    <p class="section-sub">Choose a service and your area to see matching providers.</p>
+    <form class="matcher-form" id="matcherForm">
+      <label for="matcherCategory">What service do you need?
+        <select id="matcherCategory" name="category" required>
+          <option value="" disabled selected>Select a service</option>
+          <option value="Construction">Construction</option><option value="Carpentry">Carpentry</option>
+          <option value="Electrical">Electrical</option><option value="Plumbing">Plumbing</option>
+          <option value="Agriculture & Farming">Agriculture & Farming</option><option value="Cleaning">Cleaning</option>
+          <option value="Painting & Design">Painting & Design</option><option value="AC & Cooling">AC & Cooling</option>
+          <option value="Lock & Security">Lock & Security</option><option value="Auto Repair">Auto Repair</option>
+          <option value="Packers & Movers">Packers & Movers</option><option value="General Labor">General Labor</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+      <label for="matcherArea">Your town or city (optional)
+        <input id="matcherArea" name="area" type="search" maxlength="80" placeholder="e.g. Lahore">
+      </label>
+      <button type="submit">Show matching pros</button>
+    </form>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section id="categories">
+  <h2 class="section-title">Browse Categories</h2>
+  <p class="section-sub">Scroll & pick the expert you need</p>
+  <p class="demo-notice">Pakistan sample profiles and reviews are fictional. Portraits are illustrative stock photos, not real workers or Google-sourced images.</p>
+  <div class="category-results-bar" id="categoryResultsBar" hidden>
+    <h3 id="categoryResultsTitle"></h3>
+    <button type="button" id="showAllCategories">Browse all categories</button>
+  </div>
+  <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+  <div class="grid" id="cardGrid">
+
+    <div class="card"><div class="icon">🏗️</div><h3>Construction</h3><p>Civil Engineers, Constructors, Masons</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">🔨</div><h3>Carpentry</h3><p>Furniture, Woodwork, Door & Window Repair</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">⚡</div><h3>Electrical</h3><p>Wiring, Fans, Lights, Appliance Repair</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">🔧</div><h3>Plumbing</h3><p>Pipes, Taps, Bathroom & Kitchen Repair</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">🌾</div><h3>Agriculture & Farming</h3><p>Farm Workers, Gardeners, Landscaping</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">🧹</div><h3>Cleaning</h3><p>House Cleaning, Housekeeping, Deep Clean</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">🎨</div><h3>Painting & Design</h3><p>House Painters, Interior Designers</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">❄️</div><h3>AC & Cooling</h3><p>AC Repair, Refrigerator, Cooler Service</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">🔒</div><h3>Lock & Security</h3><p>Locksmiths, CCTV Installation</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">🚗</div><h3>Auto Repair</h3><p>Vehicle Mechanics, Bike & Car Service</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">📦</div><h3>Packers & Movers</h3><p>Shifting, Loading, Transportation</p><a href="#">Find a Pro →</a></div>
+    <div class="card"><div class="icon">👷</div><h3>General Labor</h3><p>Helpers, Loaders, Daily-Wage Workers</p><a href="#">Find a Pro →</a></div>
+
+    <div class="card add" id="join">
+      <div class="icon">➕</div>
+      <h3>Add Your Service</h3>
+      <p>Are you a skilled worker? Join FIXER and get customers.</p>
+      <button type="button" onclick="openServiceForm()">Register Free →</button>
+    </div>
+  </div>
+  <div class="empty-providers" id="emptyProviders" hidden>
+    <p id="emptyProvidersMessage"></p>
+    <button type="button" id="requestMissingProvider">Ask FIXER to find a provider</button>
+  </div>
+</section>
+
+<dialog class="service-dialog" id="serviceDialog" aria-labelledby="serviceDialogTitle">
+  <h2 id="serviceDialogTitle">List your service</h2>
+  <p>Your listing is saved in this browser and is not sent to a server.</p>
+  <form class="service-form" id="serviceForm">
+    <label for="providerName">Full name
+      <input id="providerName" name="providerName" type="text" maxlength="80" autocomplete="name" placeholder="Your first and last name" required>
+    </label>
+    <label for="profilePhoto">Profile picture
+      <input id="profilePhoto" name="profilePhoto" type="file" accept="image/*" aria-describedby="profilePhotoStatus" required>
+      <span class="field-hint">Choose a clear face photo. Images are resized before saving in this browser.</span>
+      <span class="photo-preview"><img id="profilePhotoPreview" alt="Profile photo preview" hidden><span id="profilePhotoStatus" role="status" aria-live="polite">No photo selected</span></span>
+    </label>
+    <label for="serviceName">Service name
+      <input id="serviceName" name="serviceName" type="text" maxlength="60" placeholder="e.g. Appliance repair" required>
+    </label>
+    <label for="serviceCategory">Category
+      <select id="serviceCategory" name="serviceCategory" required>
+        <option value="" disabled selected>Choose a category</option>
+        <option value="Construction">Construction</option><option value="Carpentry">Carpentry</option><option value="Electrical">Electrical</option>
+        <option value="Plumbing">Plumbing</option><option value="Agriculture & Farming">Agriculture & Farming</option><option value="Cleaning">Cleaning</option>
+        <option value="Painting & Design">Painting & Design</option><option value="AC & Cooling">AC & Cooling</option><option value="Lock & Security">Lock & Security</option>
+        <option value="Auto Repair">Auto Repair</option><option value="Packers & Movers">Packers & Movers</option><option value="General Labor">General Labor</option><option value="Other">Other</option>
+      </select>
+    </label>
+    <label for="serviceLocation">Town or city
+      <input id="serviceLocation" name="serviceLocation" type="text" maxlength="80" autocomplete="address-level2" placeholder="e.g. Pune" required>
+    </label>
+    <label for="serviceRate">Price per hour (INR)
+      <input id="serviceRate" name="serviceRate" type="number" min="0" max="1000000" step="1" inputmode="decimal" placeholder="e.g. 500" required>
+    </label>
+    <label for="servicePhone">Phone number
+      <input id="servicePhone" name="servicePhone" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9+\(\) \-]{7,20}" maxlength="20" placeholder="e.g. +91 98765 43210" title="Enter 7 to 20 characters using digits, spaces, +, parentheses, or hyphens" required>
+    </label>
+    <label for="serviceExperience">Experience (years)
+      <input id="serviceExperience" name="serviceExperience" type="number" min="0" max="80" step="1" inputmode="numeric" placeholder="e.g. 5" required>
+    </label>
+    <label for="serviceCertification">Certification (optional)
+      <input id="serviceCertification" name="serviceCertification" type="text" maxlength="120" placeholder="Certificate or license name">
+      <span class="field-hint">Enter a certificate or license you hold. It is self-reported.</span>
+    </label>
+    <label for="serviceDescription">What do you offer?
+      <textarea id="serviceDescription" name="serviceDescription" maxlength="140" placeholder="Describe your service in a sentence" required></textarea>
+    </label>
+    <div class="dialog-actions">
+      <button class="cancel" type="button" onclick="closeDialog('serviceDialog')">Cancel</button>
+      <button class="submit" type="submit">Add service</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="service-dialog review-dialog" id="reviewDialog" aria-labelledby="reviewDialogTitle">
+  <h2 id="reviewDialogTitle">Rate this service</h2>
+  <p id="reviewServiceName"></p>
+  <form class="service-form" id="reviewForm">
+    <input id="reviewServiceId" name="serviceId" type="hidden">
+    <label for="reviewerName">Your name
+      <input id="reviewerName" name="reviewerName" autocomplete="name" maxlength="80" required>
+    </label>
+    <label for="reviewRating">Your rating
+      <select id="reviewRating" name="rating" required>
+        <option value="" disabled selected>Choose a rating</option>
+        <option value="5">5 - Excellent</option>
+        <option value="4">4 - Good</option>
+        <option value="3">3 - Average</option>
+        <option value="2">2 - Poor</option>
+        <option value="1">1 - Very poor</option>
+      </select>
+    </label>
+    <label for="reviewComment">Your review
+      <textarea id="reviewComment" name="comment" maxlength="500" placeholder="Share your experience" required></textarea>
+    </label>
+    <div class="dialog-actions">
+      <button class="cancel" type="button" onclick="closeDialog('reviewDialog')">Cancel</button>
+      <button class="submit" type="submit">Post review</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="service-dialog auth-dialog" id="authDialog" aria-labelledby="authTitle">
+  <h2 id="authTitle">Log in</h2>
+  <p class="auth-disclaimer">Demo accounts are stored only in this browser. Do not use a password you use elsewhere.</p>
+  <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+  <form class="service-form" id="loginForm">
+    <label for="loginEmail">Email address
+      <input id="loginEmail" name="email" type="email" autocomplete="email" required>
+    </label>
+    <label for="loginPassword">Password
+      <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <div class="dialog-actions">
+      <button class="cancel" type="button" onclick="closeDialog('authDialog')">Cancel</button>
+      <button class="submit" type="submit">Log in</button>
+    </div>
+  </form>
+  <form class="service-form" id="registerForm" hidden>
+    <label for="registerName">Full name
+      <input id="registerName" name="name" type="text" autocomplete="name" maxlength="80" required>
+    </label>
+    <label for="registerEmail">Email address
+      <input id="registerEmail" name="email" type="email" autocomplete="email" required>
+    </label>
+    <label for="registerPassword">Password
+      <input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="8" required>
+      <span class="field-hint">Use at least 8 characters. Avoid reusing an important password.</span>
+    </label>
+    <label for="confirmPassword">Confirm password
+      <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
+    </label>
+    <div class="dialog-actions">
+      <button class="cancel" type="button" onclick="closeDialog('authDialog')">Cancel</button>
+      <button class="submit" type="submit">Create account</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="service-dialog request-dialog" id="requestDialog" aria-labelledby="requestDialogTitle">
+  <h2 id="requestDialogTitle">Book a service</h2>
+  <p>Add your contact details and where and when you’d like to meet the provider.</p>
+  <form class="service-form" id="requestForm">
+    <label for="requestedService">Service
+      <input id="requestedService" name="requestedService" type="text" readonly required>
+    </label>
+    <input id="requestedProvider" name="requestedProvider" type="hidden">
+    <label for="customerName">Your name
+      <input id="customerName" name="customerName" autocomplete="name" maxlength="80" required>
+    </label>
+    <label for="customerEmail">Email address
+      <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" required>
+    </label>
+    <label for="customerPhone">Phone number
+      <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9+\(\) \-]{7,20}" maxlength="20" placeholder="e.g. +92 300 1234567" title="Enter 7 to 20 characters using digits, spaces, +, parentheses, or hyphens" required>
+    </label>
+    <label for="meetingLocation">Meeting / service location
+      <textarea id="meetingLocation" name="meetingLocation" autocomplete="street-address" maxlength="240" placeholder="Street address, area, and city" required></textarea>
+    </label>
+    <label for="bookingDate">Preferred date
+      <input id="bookingDate" name="bookingDate" type="date" required>
+    </label>
+    <label for="bookingTime">Preferred time
+      <input id="bookingTime" name="bookingTime" type="time" required>
+    </label>
+    <label for="requestDetails">Job details
+      <textarea id="requestDetails" name="requestDetails" maxlength="500" placeholder="Describe the work you need done" required></textarea>
+    </label>
+    <div class="dialog-actions">
+      <button class="cancel" type="button" onclick="closeDialog('requestDialog')">Cancel</button>
+      <button class="submit" type="submit">Review booking email</button>
+    </div>
+  </form>
+  <div class="request-confirmation" id="requestConfirmation" role="status" aria-live="polite"></div>
+</dialog>
+
+<dialog class="service-dialog privacy-dialog" id="privacyDialog" aria-labelledby="privacyDialogTitle">
+  <h2 id="privacyDialogTitle">Privacy</h2>
+  <p>This demo stores service listings in your browser only. They are not uploaded or visible to other visitors.</p>
+  <p>When you prepare a customer request, your email app opens with the details addressed to hello@fixer.com. Nothing is sent until you choose to send that email.</p>
+  <div class="dialog-actions"><button class="cancel" type="button" onclick="closeDialog('privacyDialog')">Close</button></div>
+</dialog>
+
+<section id="about">
+  <h2 class="section-title">About FIXER</h2>
+  <p class="section-sub">A simpler way to find and hire local service professionals.</p>
+  <p class="about-copy">FIXER connects people who need a job done with independent local service providers. Browse service categories, compare provider details, and send a booking request with your preferred location and time.</p>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-sub">Book an expert in 3 simple steps</p>
+  <div class="steps" id="pros">
+    <div class="step"><div class="num">1</div><h3>Search</h3><p>Type the service you need and browse verified local experts.</p></div>
+    <div class="step"><div class="num">2</div><h3>Compare</h3><p>Check prices, ratings, photos of past work & reviews.</p></div>
+    <div class="step"><div class="num">3</div><h3>Book</h3><p>Pick a date & time. Your FIXER arrives. Job done! ✅</p></div>
+  </div>
+</section>
+
+<!-- CTA (inDrive style) -->
+<section class="cta">
+  <h2>Are you a <mark>skilled worker?</mark></h2>
+  <p>Join hundreds of Fixers earning daily across your city. Registration is completely FREE.</p>
+  <button type="button" class="btn-y" onclick="openServiceForm()">+ Become a Fixer Today</button>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <h4>FIXER</h4>
+      <p style="font-size:.88rem;max-width:270px;">Every skill. One click. Fixed. Connecting you with trusted local experts — plumbers, electricians, carpenters, farmers & more.</p>
+    </div>
+    <div>
+      <h4>Quick Links</h4>
+      <a href="#categories">Categories</a>
+      <a href="#categories">Find a Pro</a>
+      <a href="#how">How It Works</a>
+      <button type="button" onclick="openServiceForm()">Become a Fixer</button>
+    </div>
+    <div>
+      <h4>Information</h4>
+      <a href="fixer-info.html#why-choose-fixer">Why choose FIXER</a>
+      <a href="fixer-info.html#fair-services">Fair services</a>
+      <a href="fixer-info.html#city-services">City services</a>
+      <a href="fixer-info.html#city-to-city-jobs">City to City jobs provider</a>
+    </div>
+    <div>
+      <h4>Support</h4>
+      <a href="mailto:hello@fixer.com?subject=FIXER%20support">Contact Us</a>
+      <a href="mailto:hello@fixer.com?subject=FIXER%20help">Help Center</a>
+      <button type="button" onclick="document.getElementById('privacyDialog').showModal()">Privacy Policy</button>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <a href="mailto:hello@fixer.com">hello@fixer.com</a>
+      <a href="tel:+913149294401">+91 3149294401</a>
+    </div>
+    <div>
+      <h4>About the Developer</h4>
+      <p class="developer-details"><strong>Shadman Akhtar</strong><br><span>AI Engineer & Data Scientist</span></p>
+      <a href="mailto:akhtarshadman044@gmail.com">akhtarshadman044@gmail.com</a>
+      <a href="tel:+923269969021">+92 326 9969021</a>
+    </div>
+  </div>
+  <div class="copyright">© 2026 FIXER. All rights reserved.</div>
+</footer>
+
+<script>
+  const serviceStorageKey = 'fixer.services';
+  const reviewStorageKey = 'fixer.reviews';
+  const accountStorageKey = 'fixer.demoAccounts';
+  const authSessionKey = 'fixer.demoSession';
+  let profilePhotoData = '';
+  let profilePhotoProcessing = 0;
+  let selectedCategory = '';
+  const demoServices = [
+    {
+      id:'demo-pakistan-lahore-electrician', fullName:'Faizan Ali', name:'Home Electrician', category:'Electrical',
+      description:'Demo listing for home wiring, light fittings, and switch repairs.', location:'Lahore, Punjab, Pakistan',
+      hourlyRate:'1800', currency:'PKR', phone:'', experience:'7', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'Careful work and clear communication.'},
+        {name:'Sample customer', rating:4, comment:'Arrived on time for the demo appointment.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-karachi-cleaning', fullName:'Ayesha Noor', name:'Home Cleaning', category:'Cleaning',
+      description:'Demo listing for regular home cleaning and kitchen deep cleans.', location:'Karachi, Sindh, Pakistan',
+      hourlyRate:'1200', currency:'PKR', phone:'', experience:'5', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'The home looked fresh after the sample clean.'},
+        {name:'Sample customer', rating:5, comment:'Friendly and thorough demo service.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-islamabad-plumber', fullName:'Hamza Raza', name:'Plumbing Repairs', category:'Plumbing',
+      description:'Demo listing for tap, pipe, and bathroom fixture repairs.', location:'Islamabad, Pakistan',
+      hourlyRate:'1600', currency:'PKR', phone:'', experience:'6', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:4, comment:'A useful sample plumbing service review.'},
+        {name:'Sample customer', rating:5, comment:'Prompt and professional demo service.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-multan-carpenter', fullName:'Zain Shah', name:'Carpentry & Furniture Repair', category:'Carpentry',
+      description:'Demo listing for furniture assembly, cabinet repairs, and woodwork.', location:'Multan, Punjab, Pakistan',
+      hourlyRate:'1400', currency:'PKR', phone:'', experience:'4', certification:'Sample credential, not verified',
+      profilePhoto:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&h=320&q=80',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'The furniture repair looked neat in this sample review.'},
+        {name:'Sample customer', rating:4, comment:'A clear and helpful demo service.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-peshawar-ac-service', fullName:'Sara Iqbal', name:'AC & Cooling Service', category:'AC & Cooling',
+      description:'Demo listing for AC maintenance, cleaning, and cooling checks.', location:'Peshawar, Khyber Pakhtunkhwa, Pakistan',
+      hourlyRate:'2200', currency:'PKR', phone:'', experience:'9', certification:'Sample credential, not verified',
+      profilePhoto:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=320&q=80',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'The sample AC service was prompt and organized.'},
+        {name:'Sample customer', rating:5, comment:'A positive illustrative demo review.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-rawalpindi-construction', fullName:'Bilal Khan', name:'Construction & Masonry', category:'Construction',
+      description:'Demo listing for small builds, masonry, and repair work.', location:'Rawalpindi, Punjab, Pakistan',
+      hourlyRate:'2000', currency:'PKR', phone:'', experience:'8', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'A tidy and well-organized sample project.'},
+        {name:'Sample customer', rating:4, comment:'Helpful communication in this demo review.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-faisalabad-farming', fullName:'Noor Fatima', name:'Farm & Garden Help', category:'Agriculture & Farming',
+      description:'Demo listing for garden care, planting, and seasonal farm work.', location:'Faisalabad, Punjab, Pakistan',
+      hourlyRate:'1100', currency:'PKR', phone:'', experience:'5', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'A helpful gardening demo service.'},
+        {name:'Sample customer', rating:4, comment:'The sample work was completed carefully.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-quetta-painting', fullName:'Mariam Baloch', name:'Painting & Interior Design', category:'Painting & Design',
+      description:'Demo listing for room painting, color advice, and wall finishes.', location:'Quetta, Balochistan, Pakistan',
+      hourlyRate:'1700', currency:'PKR', phone:'', experience:'6', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'The sample finish looked smooth and even.'},
+        {name:'Sample customer', rating:5, comment:'Thoughtful color suggestions in this demo.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-gujranwala-security', fullName:'Usman Tariq', name:'Lock & Security Support', category:'Lock & Security',
+      description:'Demo listing for lock fitting and basic home security checks.', location:'Gujranwala, Punjab, Pakistan',
+      hourlyRate:'1500', currency:'PKR', phone:'', experience:'7', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:4, comment:'A reliable-looking sample security service.'},
+        {name:'Sample customer', rating:5, comment:'Clear explanations in this fictional review.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-hyderabad-auto', fullName:'Danish Ahmed', name:'Car & Bike Mechanic', category:'Auto Repair',
+      description:'Demo listing for routine vehicle checks and basic repairs.', location:'Hyderabad, Sindh, Pakistan',
+      hourlyRate:'1900', currency:'PKR', phone:'', experience:'9', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'The demo mechanic explained the work clearly.'},
+        {name:'Sample customer', rating:4, comment:'A useful illustrative vehicle service review.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-lahore-movers', fullName:'Farhan Mahmood', name:'Packing & Moving Help', category:'Packers & Movers',
+      description:'Demo listing for careful packing and local moving assistance.', location:'Lahore, Punjab, Pakistan',
+      hourlyRate:'1300', currency:'PKR', phone:'', experience:'4', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:5, comment:'The sample packing was organized and careful.'},
+        {name:'Sample customer', rating:4, comment:'A helpful moving demo from start to finish.'}
+      ]
+    },
+    {
+      id:'demo-pakistan-bahawalpur-labor', fullName:'Imran Yousaf', name:'General Labor & Handyman', category:'General Labor',
+      description:'Demo listing for lifting, loading, and general household help.', location:'Bahawalpur, Punjab, Pakistan',
+      hourlyRate:'1000', currency:'PKR', phone:'', experience:'6', certification:'Sample credential, not verified',
+      isDemo:true, demoReviews:[
+        {name:'Sample customer', rating:4, comment:'A dependable sample helper profile.'},
+        {name:'Sample customer', rating:5, comment:'Friendly and prompt demo service.'}
+      ]
+    }
+  ];
+
+  const urduTranslations = {
+    'Language':'زبان', 'Categories':'سروس کی اقسام', 'Find a Pro':'ماہر تلاش کریں', 'About Us':'ہمارے بارے میں', 'About FIXER':'FIXER کے بارے میں', 'Developer:':'ڈیولپر:', 'About the Developer':'ڈویلپر کے بارے میں', 'AI Engineer & Data Scientist':'مصنوعی ذہانت کے انجینئر اور ڈیٹا سائنسدان', 'How It Works':'طریقہ کار',
+    'Information':'معلومات', 'Why choose FIXER':'FIXER کیوں منتخب کریں', 'Fair services':'منصفانہ سروسز',
+    'City services':'شہر کی سروسز', 'City to City jobs provider':'فراہم کنندگان کے لیے شہر سے شہر کام',
+    'A simpler way to find and hire local service professionals.':'مقامی سروس فراہم کرنے والے ماہرین کو تلاش اور ہائر کرنے کا آسان طریقہ۔',
+    'FIXER connects people who need a job done with independent local service providers. Browse service categories, compare provider details, and send a booking request with your preferred location and time.':'FIXER کام کروانے کے خواہش مند افراد کو مقامی آزاد سروس فراہم کرنے والوں سے ملاتا ہے۔ سروس کی اقسام دیکھیں، فراہم کنندگان کی تفصیلات کا موازنہ کریں، اور اپنی پسندیدہ جگہ اور وقت کے ساتھ بکنگ کی درخواست بھیجیں۔',
+    'Log in':'لاگ اِن', 'Create account':'اکاؤنٹ بنائیں', 'Log out':'لاگ آؤٹ', '+ Add Your Service':'اپنی سروس شامل کریں',
+    'Search services':'سروس تلاش کریں', 'Hire this provider':'اس ماہر کو ہائر کریں', 'Profile photo preview':'پروفائل تصویر کا پیش منظر',
+    'Find the right pro for your job':'اپنے کام کے لیے درست ماہر تلاش کریں',
+    'Choose a service and your area to see matching providers.':'متعلقہ ماہرین دیکھنے کے لیے سروس اور اپنا علاقہ منتخب کریں۔',
+    'What service do you need?':'آپ کو کون سی سروس چاہیے؟', 'Select a service':'سروس منتخب کریں',
+    'Your town or city (optional)':'آپ کا قصبہ یا شہر (اختیاری)', 'e.g. Lahore':'مثلاً لاہور', 'Show matching pros':'متعلقہ ماہرین دکھائیں',
+    'Open navigation menu':'نیویگیشن مینو کھولیں', 'Close navigation menu':'نیویگیشن مینو بند کریں',
+    'Photo ready':'تصویر تیار ہے', 'Preparing photo...':'تصویر تیار ہو رہی ہے...', 'Image must be smaller than 8 MB.':'تصویر 8 MB سے کم ہونی چاہیے۔',
+    'Choose a supported image file.':'درست تصویری فائل منتخب کریں۔', 'Could not read this image.':'تصویر پڑھی نہیں جا سکی۔',
+    'This image format could not be opened.':'تصویر کا یہ فارمیٹ نہیں کھل سکا۔', 'Could not resize this image.':'تصویر کا سائز تبدیل نہیں ہو سکا۔',
+    'Could not prepare this image.':'تصویر تیار نہیں ہو سکی۔',
+    'Home Electrician':'گھریلو الیکٹریشن', 'Demo listing for home wiring, light fittings, and switch repairs.':'گھر کی وائرنگ، لائٹس اور سوئچ کی مرمت کے لیے نمونہ لسٹنگ۔',
+    'Home Cleaning':'گھر کی صفائی', 'Demo listing for regular home cleaning and kitchen deep cleans.':'گھر کی باقاعدہ صفائی اور کچن کی مکمل صفائی کے لیے نمونہ لسٹنگ۔',
+    'Plumbing Repairs':'پلمبنگ کی مرمت', 'Demo listing for tap, pipe, and bathroom fixture repairs.':'نلکوں، پائپ اور باتھ روم کی فٹنگز کی مرمت کے لیے نمونہ لسٹنگ۔',
+    'Carpentry & Furniture Repair':'بڑھئی اور فرنیچر کی مرمت', 'Demo listing for furniture assembly, cabinet repairs, and woodwork.':'فرنیچر جوڑنے، الماری کی مرمت اور لکڑی کے کام کے لیے نمونہ لسٹنگ۔',
+    'AC & Cooling Service':'اے سی اور کولنگ سروس', 'Demo listing for AC maintenance, cleaning, and cooling checks.':'اے سی کی دیکھ بھال، صفائی اور کولنگ چیک کے لیے نمونہ لسٹنگ۔',
+    'Construction & Masonry':'تعمیراتی کام اور مستری', 'Demo listing for small builds, masonry, and repair work.':'چھوٹی تعمیرات، مستری کے کام اور مرمت کے لیے نمونہ لسٹنگ۔',
+    'Farm & Garden Help':'کھیت اور باغبانی میں مدد', 'Demo listing for garden care, planting, and seasonal farm work.':'باغ کی دیکھ بھال، پودے لگانے اور موسمی کھیتی کے کام کے لیے نمونہ لسٹنگ۔',
+    'Painting & Interior Design':'رنگ و روغن اور اندرونی ڈیزائن', 'Demo listing for room painting, color advice, and wall finishes.':'کمروں کی پینٹنگ، رنگوں کے مشورے اور دیواروں کی فنشنگ کے لیے نمونہ لسٹنگ۔',
+    'Lock & Security Support':'تالے اور سیکیورٹی کی مدد', 'Demo listing for lock fitting and basic home security checks.':'تالے لگانے اور گھر کی بنیادی سیکیورٹی جانچ کے لیے نمونہ لسٹنگ۔',
+    'Car & Bike Mechanic':'کار اور بائیک مکینک', 'Demo listing for routine vehicle checks and basic repairs.':'گاڑیوں کی معمول کی جانچ اور بنیادی مرمت کے لیے نمونہ لسٹنگ۔',
+    'Packing & Moving Help':'پیکنگ اور شفٹنگ میں مدد', 'Demo listing for careful packing and local moving assistance.':'احتیاط سے پیکنگ اور مقامی شفٹنگ میں مدد کے لیے نمونہ لسٹنگ۔',
+    'General Labor & Handyman':'عام مزدوری اور ہینڈی مین', 'Demo listing for lifting, loading, and general household help.':'سامان اٹھانے، لوڈنگ اور گھریلو کاموں میں مدد کے لیے نمونہ لسٹنگ۔',
+    'Sample credential, not verified':'نمونہ سند، تصدیق شدہ نہیں',
+    'Careful work and clear communication.':'احتیاط سے کام اور واضح بات چیت۔', 'Arrived on time for the demo appointment.':'نمونہ ملاقات کے لیے وقت پر پہنچے۔',
+    'The home looked fresh after the sample clean.':'نمونہ صفائی کے بعد گھر صاف ستھرا لگا۔', 'Friendly and thorough demo service.':'خوش اخلاق اور مکمل نمونہ سروس۔',
+    'A useful sample plumbing service review.':'پلمبنگ سروس کا مفید نمونہ جائزہ۔', 'Prompt and professional demo service.':'فوری اور پیشہ ورانہ نمونہ سروس۔',
+    'The furniture repair looked neat in this sample review.':'نمونہ جائزے میں فرنیچر کی مرمت صاف ستھری لگی۔', 'A clear and helpful demo service.':'واضح اور مددگار نمونہ سروس۔',
+    'The sample AC service was prompt and organized.':'نمونہ اے سی سروس فوری اور منظم تھی۔', 'A positive illustrative demo review.':'مثبت نمونہ جائزہ۔',
+    'A tidy and well-organized sample project.':'صاف ستھرا اور منظم نمونہ کام۔', 'Helpful communication in this demo review.':'اس نمونہ جائزے میں مددگار گفتگو۔',
+    'A helpful gardening demo service.':'باغبانی کی مددگار نمونہ سروس۔', 'The sample work was completed carefully.':'نمونہ کام احتیاط سے مکمل کیا گیا۔',
+    'The sample finish looked smooth and even.':'نمونہ فنش ہموار اور یکساں تھی۔', 'Thoughtful color suggestions in this demo.':'اس نمونے میں رنگوں کے اچھے مشورے۔',
+    'A reliable-looking sample security service.':'قابلِ اعتماد نظر آنے والی نمونہ سیکیورٹی سروس۔', 'Clear explanations in this fictional review.':'اس فرضی جائزے میں واضح وضاحت۔',
+    'The demo mechanic explained the work clearly.':'نمونہ مکینک نے کام واضح طور پر سمجھایا۔', 'A useful illustrative vehicle service review.':'گاڑیوں کی سروس کا مفید نمونہ جائزہ۔',
+    'The sample packing was organized and careful.':'نمونہ پیکنگ منظم اور احتیاط سے کی گئی۔', 'A helpful moving demo from start to finish.':'شروع سے آخر تک مددگار نمونہ شفٹنگ۔',
+    'A dependable sample helper profile.':'قابلِ بھروسا نمونہ مددگار پروفائل۔', 'Friendly and prompt demo service.':'خوش اخلاق اور فوری نمونہ سروس۔',
+    'Service added for this visit, but browser storage is unavailable.':'سروس اس وزٹ کے لیے شامل ہوئی، مگر براؤزر اسٹوریج دستیاب نہیں۔',
+    'Review added for this visit, but browser storage is unavailable.':'جائزہ اس وزٹ کے لیے شامل ہوا، مگر براؤزر اسٹوریج دستیاب نہیں۔',
+    'Browser storage is full; this demo account could not be saved.':'براؤزر اسٹوریج بھر گئی ہے، ڈیمو اکاؤنٹ محفوظ نہیں ہو سکا۔',
+    'No demo account found for this email. Create an account first.':'اس ای میل کا ڈیمو اکاؤنٹ نہیں ملا۔ پہلے اکاؤنٹ بنائیں۔',
+    'Password hashing is unavailable. Open this demo in a modern browser over localhost or HTTPS.':'پاس ورڈ محفوظ کرنے کی سہولت دستیاب نہیں۔ یہ ڈیمو جدید براؤزر میں localhost یا HTTPS پر کھولیں۔',
+    'Every skill. One click.':'ہر ہنر، ایک کلک میں', 'Fixed.':'حل حاضر!',
+    'Find trusted local pros for any job — big or small.':'ہر چھوٹے بڑے کام کے لیے قابلِ اعتماد مقامی ماہر تلاش کریں۔',
+    'What do you need fixed or built?':'آپ کو کس کام کے لیے ماہر چاہیے؟', 'Search':'تلاش کریں',
+    'Vetted pros':'تصدیق شدہ ماہرین', 'Average rating':'اوسط درجہ بندی', 'Avg. response':'اوسط جواب',
+    'Browse Categories':'سروس کی اقسام دیکھیں', 'Scroll & pick the expert you need':'اپنی ضرورت کی سروس منتخب کریں',
+    'Pakistan sample profiles and reviews are fictional. Portraits are illustrative stock photos, not real workers or Google-sourced images.':'پاکستان کے یہ نمونہ پروفائل اور جائزے فرضی ہیں۔ تصاویر صرف مثال کے لیے ہیں، حقیقی کارکنوں یا گوگل سے نہیں لی گئیں۔',
+    'Browse all categories':'تمام اقسام دیکھیں', 'Ask FIXER to find a provider':'FIXER سے ماہر تلاش کرنے کو کہیں',
+    'Construction':'تعمیراتی کام', 'Civil Engineers, Constructors, Masons':'سول انجینئر، ٹھیکیدار اور مستری',
+    'Carpentry':'بڑھئی کا کام', 'Furniture, Woodwork, Door & Window Repair':'فرنیچر، لکڑی کا کام، دروازوں اور کھڑکیوں کی مرمت',
+    'Electrical':'بجلی کا کام', 'Wiring, Fans, Lights, Appliance Repair':'وائرنگ، پنکھے، لائٹس اور آلات کی مرمت',
+    'Plumbing':'پلمبنگ', 'Pipes, Taps, Bathroom & Kitchen Repair':'پائپ، نلکے، باتھ روم اور کچن کی مرمت',
+    'Agriculture & Farming':'زراعت اور کاشتکاری', 'Farm Workers, Gardeners, Landscaping':'کھیتی باڑی، باغبانی اور لینڈ اسکیپنگ',
+    'Cleaning':'صفائی', 'House Cleaning, Housekeeping, Deep Clean':'گھر کی صفائی اور مکمل صفائی',
+    'Painting & Design':'رنگ و روغن اور ڈیزائن', 'House Painters, Interior Designers':'گھر کے پینٹر اور انٹیریئر ڈیزائنر',
+    'AC & Cooling':'اے سی اور کولنگ', 'AC Repair, Refrigerator, Cooler Service':'اے سی، فریج اور کولر کی مرمت',
+    'Lock & Security':'تالے اور سیکیورٹی', 'Locksmiths, CCTV Installation':'تالے کی مرمت اور سی سی ٹی وی کی تنصیب',
+    'Auto Repair':'گاڑیوں کی مرمت', 'Vehicle Mechanics, Bike & Car Service':'گاڑیوں کے مکینک، بائیک اور کار سروس',
+    'Packers & Movers':'پیکرز اور موورز', 'Shifting, Loading, Transportation':'شفٹنگ، لوڈنگ اور نقل و حمل',
+    'General Labor':'عام مزدوری', 'Helpers, Loaders, Daily-Wage Workers':'مددگار، لوڈر اور یومیہ مزدور',
+    'Add Your Service':'اپنی سروس شامل کریں', 'Are you a skilled worker? Join FIXER and get customers.':'کیا آپ ہنر مند ہیں؟ FIXER میں شامل ہوں اور گاہک حاصل کریں۔',
+    'Register Free →':'مفت رجسٹر کریں →', 'List your service':'اپنی سروس درج کریں',
+    'Your listing is saved in this browser and is not sent to a server.':'آپ کی لسٹنگ اسی براؤزر میں محفوظ ہوگی، سرور پر نہیں بھیجی جائے گی۔',
+    'Full name':'پورا نام', 'Your first and last name':'اپنا پورا نام لکھیں', 'Profile picture':'پروفائل تصویر',
+    'Choose a clear face photo. Images are resized before saving in this browser.':'اپنی واضح تصویر منتخب کریں۔ تصویر براؤزر میں محفوظ کرنے سے پہلے چھوٹی کی جائے گی۔',
+    'No photo selected':'کوئی تصویر منتخب نہیں', 'Service name':'سروس کا نام', 'e.g. Appliance repair':'مثلاً آلات کی مرمت',
+    'Category':'قسم', 'Choose a category':'قسم منتخب کریں', 'Town or city':'قصبہ یا شہر', 'e.g. Pune':'مثلاً لاہور',
+    'Price per hour (INR)':'فی گھنٹہ قیمت (INR)', 'e.g. 500':'مثلاً 500', 'Phone number':'فون نمبر',
+    'e.g. +91 98765 43210':'مثلاً +92 300 1234567', 'Enter 7 to 20 characters using digits, spaces, +, parentheses, or hyphens':'7 سے 20 ہندسے درج کریں۔ +، قوسین اور ڈیش استعمال کر سکتے ہیں۔',
+    'Experience (years)':'تجربہ (سال)', 'e.g. 5':'مثلاً 5', 'Certification (optional)':'سرٹیفکیٹ (اختیاری)',
+    'Certificate or license name':'سرٹیفکیٹ یا لائسنس کا نام', 'Enter a certificate or license you hold. It is self-reported.':'اپنے سرٹیفکیٹ یا لائسنس کا نام لکھیں۔ اس کی تصدیق نہیں کی گئی۔',
+    'What do you offer?':'آپ کون سی سروس دیتے ہیں؟', 'Describe your service in a sentence':'اپنی سروس مختصراً بیان کریں',
+    'Cancel':'منسوخ کریں', 'Add service':'سروس شامل کریں', 'Rate this service':'اس سروس کی درجہ بندی کریں',
+    'Your rating':'آپ کی درجہ بندی', 'Choose a rating':'درجہ بندی منتخب کریں', '5 - Excellent':'5 - بہترین', '4 - Good':'4 - اچھا',
+    '3 - Average':'3 - اوسط', '2 - Poor':'2 - کمزور', '1 - Very poor':'1 - بہت کمزور',
+    'Your review':'آپ کا جائزہ', 'Share your experience':'اپنا تجربہ بتائیں', 'Post review':'جائزہ بھیجیں',
+    'Demo accounts are stored only in this browser. Do not use a password you use elsewhere.':'ڈیمو اکاؤنٹس صرف اسی براؤزر میں محفوظ ہوتے ہیں۔ اپنا اہم یا دوسرا استعمال ہونے والا پاس ورڈ نہ دیں۔',
+    'Email address':'ای میل ایڈریس', 'Password':'پاس ورڈ', 'Use at least 8 characters. Avoid reusing an important password.':'کم از کم 8 حروف استعمال کریں۔ اہم پاس ورڈ دوبارہ استعمال نہ کریں۔',
+    'Confirm password':'پاس ورڈ کی تصدیق', 'Book a service':'سروس بک کریں',
+    'Add your contact details and where and when you’d like to meet the provider.':'اپنا رابطہ، ملاقات کی جگہ اور پسندیدہ وقت درج کریں۔',
+    'Service':'سروس', 'Your name':'آپ کا نام', 'Meeting / service location':'ملاقات / سروس کا مقام',
+    'Street address, area, and city':'گلی، علاقہ اور شہر کا پتہ', 'Preferred date':'پسندیدہ تاریخ', 'Preferred time':'پسندیدہ وقت',
+    'Job details':'کام کی تفصیل', 'Describe the work you need done':'درکار کام کی تفصیل لکھیں', 'Review booking email':'بکنگ ای میل دیکھیں',
+    'Your booking request is ready in an email draft. It is not sent or booked until you send the email.':'آپ کی بکنگ کی درخواست ای میل میں تیار ہے۔ ای میل بھیجنے سے پہلے بکنگ نہیں ہوگی۔',
+    'Open email to send booking request':'بکنگ کی درخواست بھیجنے کے لیے ای میل کھولیں', 'Privacy':'رازداری',
+    'This demo stores service listings in your browser only. They are not uploaded or visible to other visitors.':'یہ ڈیمو سروس لسٹنگ صرف آپ کے براؤزر میں محفوظ کرتا ہے۔ دوسرے وزیٹر انہیں نہیں دیکھ سکتے۔',
+    'When you prepare a customer request, your email app opens with the details addressed to hello@fixer.com. Nothing is sent until you choose to send that email.':'درخواست تیار کرنے پر آپ کی ای میل ایپ hello@fixer.com کے پتے کے ساتھ کھلے گی۔ ای میل بھیجنے تک کچھ ارسال نہیں ہوگا۔',
+    'Close':'بند کریں', 'How It Works':'طریقہ کار', 'Book an expert in 3 simple steps':'صرف 3 آسان مراحل میں ماہر بک کریں',
+    'Type the service you need and browse verified local experts.':'درکار سروس لکھیں اور مقامی ماہرین دیکھیں۔',
+    'Check prices, ratings, photos of past work & reviews.':'قیمت، درجہ بندی، کام کی تصاویر اور جائزے دیکھیں۔',
+    'Pick a date & time. Your FIXER arrives. Job done! ✅':'تاریخ اور وقت منتخب کریں۔ FIXER پہنچے گا، کام مکمل! ✅',
+    'Are you a':'کیا آپ', 'skilled worker?':'ہنر مند ہیں؟',
+    'Join hundreds of Fixers earning daily across your city. Registration is completely FREE.':'اپنے شہر میں کام کرنے والے سینکڑوں FIXER ساتھیوں میں شامل ہوں۔ رجسٹریشن بالکل مفت ہے۔',
+    '+ Become a Fixer Today':'آج ہی FIXER بنیں', 'Quick Links':'فوری روابط', 'Become a Fixer':'FIXER بنیں',
+    'Support':'مدد', 'Contact Us':'ہم سے رابطہ کریں', 'Help Center':'مدد مرکز', 'Privacy Policy':'رازداری کی پالیسی',
+    'Contact':'رابطہ', 'No ratings yet':'ابھی کوئی درجہ بندی نہیں', 'Write a review':'جائزہ لکھیں', 'DEMO PROFILE':'ڈیمو پروفائل',
+    'Demo profile: no public phone number':'ڈیمو پروفائل: عوامی فون نمبر نہیں', 'Call:':'کال کریں:', 'Certification:':'سرٹیفکیٹ:',
+    'Experience:':'تجربہ:', 'Price:':'قیمت:', 'Town / city:':'قصبہ / شہر:', 'Hire us':'ہمیں ہائر کریں',
+    'Sample customer':'نمونہ گاہک', 'Sample review:':'نمونہ جائزہ:', 'Read sample reviews':'نمونہ جائزے پڑھیں', 'Read reviews':'جائزے پڑھیں',
+    ' · sample':' · نمونہ', 'Other':'دیگر', 'Price per hour: Not provided':'فی گھنٹہ قیمت درج نہیں',
+    'No Construction providers are listed yet.':'ابھی تعمیراتی کام کے ماہرین درج نہیں ہیں۔',
+    'No Carpentry providers are listed yet.':'ابھی بڑھئی کے ماہرین درج نہیں ہیں۔',
+    'No Electrical providers are listed yet.':'ابھی بجلی کے ماہرین درج نہیں ہیں۔',
+    'No Plumbing providers are listed yet.':'ابھی پلمبنگ کے ماہرین درج نہیں ہیں۔',
+    'No Agriculture & Farming providers are listed yet.':'ابھی زراعت کے ماہرین درج نہیں ہیں۔',
+    'No Cleaning providers are listed yet.':'ابھی صفائی کے ماہرین درج نہیں ہیں۔',
+    'No Painting & Design providers are listed yet.':'ابھی رنگ و روغن کے ماہرین درج نہیں ہیں۔',
+    'No AC & Cooling providers are listed yet.':'ابھی اے سی کے ماہرین درج نہیں ہیں۔',
+    'No Lock & Security providers are listed yet.':'ابھی سیکیورٹی کے ماہرین درج نہیں ہیں۔',
+    'No Auto Repair providers are listed yet.':'ابھی گاڑیوں کے مکینک درج نہیں ہیں۔',
+    'No Packers & Movers providers are listed yet.':'ابھی پیکرز اور موورز درج نہیں ہیں۔',
+    'No General Labor providers are listed yet.':'ابھی مزدور درج نہیں ہیں۔',
+    'The passwords do not match.':'پاس ورڈ ایک جیسے نہیں ہیں۔',
+    'An account with this email already exists. Try logging in.':'اس ای میل سے اکاؤنٹ موجود ہے۔ لاگ اِن کریں۔',
+    'Incorrect email or password.':'ای میل یا پاس ورڈ درست نہیں۔',
+    'Could not start a session in this browser. Check browser storage settings.':'اس براؤزر میں سیشن شروع نہیں ہو سکا۔ اسٹوریج کی ترتیبات دیکھیں۔',
+    'This demo account is stored only in your browser.':'یہ ڈیمو اکاؤنٹ صرف آپ کے براؤزر میں محفوظ ہے۔'
+  };
+
+  const originalTextNodes = new WeakMap();
+  const originalAttributes = new WeakMap();
+  let currentLanguage = 'en';
+
+  function localizeText(text){
+    return currentLanguage === 'ur' ? (urduTranslations[text] || text) : text;
+  }
+
+  function localizeProviderMeta(text){
+    if(currentLanguage !== 'ur') return text;
+    if(text.startsWith('Town / city: ')) return `قصبہ / شہر: ${text.slice('Town / city: '.length)}`;
+    if(text.startsWith('Price: ')) return `قیمت: ${text.slice('Price: '.length).replace(/ \/ hour$/, ' فی گھنٹہ')}`;
+    if(text.startsWith('Experience: ')) return `تجربہ: ${text.slice('Experience: '.length).replace(/ years$/, ' سال')}`;
+    if(text.startsWith('Certification: ')) return `سرٹیفکیٹ: ${localizeText(text.slice('Certification: '.length))}`;
+    if(text.startsWith('Sample rating: ')) return `نمونہ درجہ بندی: ${text.slice('Sample rating: '.length).replace(' sample reviews', ' نمونہ جائزے')}`;
+    if(text.startsWith('Visitor rating: ')) return `وزیٹر درجہ بندی: ${text.slice('Visitor rating: '.length).replace(/ reviews?$/, ' جائزے')}`;
+    return localizeText(text);
+  }
+
+  function translateSubtree(root=document.body){
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let textNode;
+    while(textNode = walker.nextNode()){
+      if(!originalTextNodes.has(textNode)) originalTextNodes.set(textNode, textNode.nodeValue);
+      const original = originalTextNodes.get(textNode);
+      const trimmed = original.trim();
+      if(!trimmed) continue;
+      const leading = original.match(/^\s*/)[0];
+      const trailing = original.match(/\s*$/)[0];
+      textNode.nodeValue = `${leading}${localizeText(trimmed)}${trailing}`;
+    }
+    root.querySelectorAll?.('[placeholder],[title],[aria-label]').forEach(element=>{
+      let saved = originalAttributes.get(element);
+      if(!saved){
+        saved = {};
+        originalAttributes.set(element, saved);
+      }
+      ['placeholder','title','aria-label'].forEach(attribute=>{
+        if(!element.hasAttribute(attribute)) return;
+        if(!(attribute in saved)) saved[attribute] = element.getAttribute(attribute);
+        element.setAttribute(attribute, localizeText(saved[attribute]));
+      });
+    });
+    root.querySelectorAll?.('.request-link').forEach(link=>{
+      const providerName = link.dataset.providerName;
+      const serviceName = link.dataset.serviceName;
+      link.textContent = currentLanguage === 'ur'
+        ? `${providerName || 'ہمیں'} کو ہائر کریں`
+        : providerName ? `Hire ${providerName}` : 'Hire us';
+      link.setAttribute('aria-label', currentLanguage === 'ur'
+        ? `${providerName || 'اس ماہر'} کو ${serviceName} کے لیے ہائر کریں`
+        : `Hire ${providerName || 'this provider'} for ${serviceName}`);
+    });
+    root.querySelectorAll?.('.provider-meta[data-english-text]').forEach(element=>{
+      const localized = localizeProviderMeta(element.dataset.englishText);
+      const link = element.querySelector('a');
+      if(link) link.textContent = localized;
+      else element.textContent = localized;
+    });
+    document.documentElement.lang = currentLanguage;
+    document.documentElement.dir = currentLanguage === 'ur' ? 'rtl' : 'ltr';
+    document.title = currentLanguage === 'ur' ? 'FIXER — ہر ہنر، ایک کلک میں' : 'FIXER — Every Skill. One Click. Fixed.';
+  }
+
+  function setLanguage(language){
+    currentLanguage = language === 'ur' ? 'ur' : 'en';
+    document.getElementById('languageSelector').value = currentLanguage;
+    try{localStorage.setItem('fixer.language', currentLanguage);}catch{}
+    translateSubtree();
+    updateCategoryResultsTitle();
+  }
+
+  function toggleMenu(button){
+    const menu = document.getElementById('menu');
+    const isOpen = menu.classList.toggle('open');
+    button.setAttribute('aria-expanded', String(isOpen));
+    button.setAttribute('aria-label', localizeText(isOpen ? 'Close navigation menu' : 'Open navigation menu'));
+  }
+
+  function closeDialog(id){
+    document.getElementById(id).close();
+  }
+
+  function readAccounts(){
+    try{
+      const accounts = JSON.parse(localStorage.getItem(accountStorageKey) || '[]');
+      return Array.isArray(accounts) ? accounts : [];
+    }catch{
+      return [];
+    }
+  }
+
+  function setAuthMode(mode){
+    const isLogin = mode === 'login';
+    document.getElementById('loginForm').hidden = !isLogin;
+    document.getElementById('registerForm').hidden = isLogin;
+    document.getElementById('authTitle').textContent = localizeText(isLogin ? 'Log in' : 'Create account');
+    setAuthMessage('');
+  }
+
+  function setAuthMessage(text){
+    const message = document.getElementById('authMessage');
+    message.textContent = localizeText(text);
+  }
+
+  function openAuth(mode){
+    document.getElementById('menu').classList.remove('open');
+    const menuButton = document.querySelector('.hamburger');
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', localizeText('Open navigation menu'));
+    document.getElementById('loginForm').reset();
+    document.getElementById('registerForm').reset();
+    setAuthMode(mode);
+    document.getElementById('authDialog').showModal();
+  }
+
+  async function hashPassword(password, saltText){
+    if(!window.crypto || !window.crypto.subtle) throw new Error('Password hashing is unavailable. Open this demo in a modern browser over localhost or HTTPS.');
+    const salt = saltText
+      ? Uint8Array.from(atob(saltText), character=>character.charCodeAt(0))
+      : window.crypto.getRandomValues(new Uint8Array(16));
+    const saltBase64 = saltText || btoa(String.fromCharCode(...salt));
+    const key = await window.crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await window.crypto.subtle.deriveBits({name:'PBKDF2', salt, iterations:120000, hash:'SHA-256'}, key, 256);
+    const hash = Array.from(new Uint8Array(bits), byte=>byte.toString(16).padStart(2, '0')).join('');
+    return {salt:saltBase64, hash};
+  }
+
+  function updateAuthNav(){
+    let currentEmail = '';
+    try{
+      currentEmail = JSON.parse(sessionStorage.getItem(authSessionKey) || '{}').email || '';
+    }catch{
+      currentEmail = '';
+    }
+    const account = readAccounts().find(item=>item.email === currentEmail);
+    document.getElementById('loginNavItem').hidden = Boolean(account);
+    document.getElementById('registerNavItem').hidden = Boolean(account);
+    document.getElementById('accountNavItem').hidden = !account;
+    document.getElementById('accountName').textContent = account
+      ? currentLanguage === 'ur' ? `${account.name}، خوش آمدید` : `Hi, ${account.name}`
+      : '';
+    if(!account){
+      try{sessionStorage.removeItem(authSessionKey);}catch{}
+    }
+  }
+
+  function startAccountSession(account){
+    try{
+      sessionStorage.setItem(authSessionKey, JSON.stringify({email:account.email}));
+      updateAuthNav();
+      document.getElementById('authDialog').close();
+      document.getElementById('loginForm').reset();
+      document.getElementById('registerForm').reset();
+      return true;
+    }catch{
+      setAuthMessage('Could not start a session in this browser. Check browser storage settings.');
+      return false;
+    }
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', async event=>{
+    event.preventDefault();
+    const form = event.currentTarget;
+    const email = form.elements.email.value.trim().toLowerCase();
+    if(form.elements.password.value !== form.elements.confirmPassword.value){
+      setAuthMessage('The passwords do not match.');
+      return;
+    }
+    const accounts = readAccounts();
+    if(accounts.some(account=>account.email === email)){
+      setAuthMessage('An account with this email already exists. Try logging in.');
+      return;
+    }
+    try{
+      const credentials = await hashPassword(form.elements.password.value);
+      const account = {name:form.elements.name.value.trim(), email, salt:credentials.salt, passwordHash:credentials.hash};
+      accounts.push(account);
+      localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
+      if(startAccountSession(account)) setAuthMessage('');
+    }catch(error){
+      setAuthMessage(error.name === 'QuotaExceededError' ? 'Browser storage is full; this demo account could not be saved.' : error.message);
+    }
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', async event=>{
+    event.preventDefault();
+    const form = event.currentTarget;
+    const email = form.elements.email.value.trim().toLowerCase();
+    const account = readAccounts().find(item=>item.email === email);
+    if(!account){
+      setAuthMessage('No demo account found for this email. Create an account first.');
+      return;
+    }
+    try{
+      const credentials = await hashPassword(form.elements.password.value, account.salt);
+      if(credentials.hash !== account.passwordHash){
+        setAuthMessage('Incorrect email or password.');
+        return;
+      }
+      startAccountSession(account);
+    }catch(error){
+      setAuthMessage(error.message);
+    }
+  });
+
+  document.getElementById('logoutButton').addEventListener('click',()=>{
+    try{sessionStorage.removeItem(authSessionKey);}catch{}
+    updateAuthNav();
+  });
+
+  function openServiceForm(){
+    document.getElementById('menu').classList.remove('open');
+    const menuButton = document.querySelector('.hamburger');
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', localizeText('Open navigation menu'));
+    document.getElementById('serviceForm').reset();
+    document.getElementById('serviceDialog').showModal();
+  }
+
+  function readServices(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(serviceStorageKey) || '[]');
+      return Array.isArray(saved) ? saved : [];
+    }catch{
+      return [];
+    }
+  }
+
+  function writeServices(services){
+    try{
+      localStorage.setItem(serviceStorageKey, JSON.stringify(services));
+      return true;
+    }catch{
+      return false;
+    }
+  }
+
+  function readReviews(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(reviewStorageKey) || '[]');
+      return Array.isArray(saved) ? saved : [];
+    }catch{
+      return [];
+    }
+  }
+
+  function writeReviews(reviews){
+    try{
+      localStorage.setItem(reviewStorageKey, JSON.stringify(reviews));
+      return true;
+    }catch{
+      return false;
+    }
+  }
+
+  function createServiceId(){
+    return `service-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+  }
+
+  function compressProfilePhoto(file){
+    return new Promise((resolve,reject)=>{
+      const sourceReader = new FileReader();
+      sourceReader.onerror = ()=>reject(new Error('Could not read this image.'));
+      sourceReader.onload = ()=>{
+        const image = new Image();
+        image.onerror = ()=>reject(new Error('This image format could not be opened.'));
+        image.onload = ()=>{
+          const maxDimension = 480;
+          const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(image.width * scale);
+          canvas.height = Math.round(image.height * scale);
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob=>{
+            if(!blob){
+              reject(new Error('Could not resize this image.'));
+              return;
+            }
+            const compressedReader = new FileReader();
+            compressedReader.onerror = ()=>reject(new Error('Could not prepare this image.'));
+            compressedReader.onload = ()=>resolve(compressedReader.result);
+            compressedReader.readAsDataURL(blob);
+          }, 'image/jpeg', .78);
+        };
+        image.src = sourceReader.result;
+      };
+      sourceReader.readAsDataURL(file);
+    });
+  }
+
+  const serviceForm = document.getElementById('serviceForm');
+  const profilePhotoInput = document.getElementById('profilePhoto');
+  const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+  const profilePhotoStatus = document.getElementById('profilePhotoStatus');
+  const serviceSubmitButton = serviceForm.querySelector('button[type="submit"]');
+
+  serviceForm.addEventListener('reset',()=>{
+    profilePhotoProcessing++;
+    profilePhotoData = '';
+    profilePhotoPreview.hidden = true;
+    profilePhotoPreview.removeAttribute('src');
+    profilePhotoStatus.textContent = localizeText('No photo selected');
+    profilePhotoInput.setCustomValidity('');
+    serviceSubmitButton.disabled = false;
+  });
+
+  profilePhotoInput.addEventListener('change',async event=>{
+    const file = event.currentTarget.files[0];
+    const processingId = ++profilePhotoProcessing;
+    profilePhotoData = '';
+    profilePhotoPreview.hidden = true;
+    profilePhotoInput.setCustomValidity('');
+    if(!file){
+      profilePhotoStatus.textContent = localizeText('No photo selected');
+      serviceSubmitButton.disabled = false;
+      return;
+    }
+    if(!file.type.startsWith('image/') || file.size > 8 * 1024 * 1024){
+      profilePhotoInput.setCustomValidity(file.size > 8 * 1024 * 1024 ? 'Choose an image smaller than 8 MB.' : 'Choose an image file.');
+      profilePhotoStatus.textContent = localizeText(file.size > 8 * 1024 * 1024 ? 'Image must be smaller than 8 MB.' : 'Choose a supported image file.');
+      serviceSubmitButton.disabled = false;
+      return;
+    }
+    serviceSubmitButton.disabled = true;
+    profilePhotoStatus.textContent = localizeText('Preparing photo...');
+    try{
+      const compressedPhoto = await compressProfilePhoto(file);
+      if(processingId !== profilePhotoProcessing) return;
+      profilePhotoData = compressedPhoto;
+      profilePhotoPreview.src = compressedPhoto;
+      profilePhotoPreview.hidden = false;
+      profilePhotoStatus.textContent = localizeText('Photo ready');
+    }catch(error){
+      if(processingId !== profilePhotoProcessing) return;
+      profilePhotoInput.setCustomValidity(error.message);
+      profilePhotoStatus.textContent = localizeText(error.message);
+    }finally{
+      if(processingId === profilePhotoProcessing) serviceSubmitButton.disabled = false;
+    }
+  });
+
+  function createProviderMeta(text){
+    const paragraph = document.createElement('p');
+    paragraph.className = 'provider-meta';
+    paragraph.dataset.englishText = text;
+    paragraph.textContent = localizeProviderMeta(text);
+    return paragraph;
+  }
+
+  function openReviewForm(service){
+    document.getElementById('reviewForm').reset();
+    document.getElementById('reviewServiceId').value = service.id;
+    document.getElementById('reviewServiceName').textContent = service.name;
+    document.getElementById('reviewDialog').showModal();
+  }
+
+  function createServiceCard(service){
+    const serviceCard = document.createElement('div');
+    serviceCard.className = 'card user-service';
+    serviceCard.dataset.serviceId = service.id;
+    serviceCard.dataset.category = service.category.toLowerCase();
+    const icon = document.createElement('div');
+    icon.className = 'icon';
+    icon.textContent = '🛠️';
+    const providerName = document.createElement('p');
+    providerName.className = 'provider-name';
+    providerName.textContent = service.fullName || 'Provider name not added';
+    const providerDetails = [];
+    if(service.profilePhoto){
+      const profilePhoto = document.createElement('img');
+      profilePhoto.className = 'provider-photo';
+      profilePhoto.src = service.profilePhoto;
+      profilePhoto.alt = service.isDemo
+        ? `Illustrative stock portrait for fictional demo profile ${service.fullName}`
+        : `Profile photo of ${service.fullName || 'service provider'}`;
+      providerDetails.push(profilePhoto);
+    }else if(service.isDemo){
+      const avatar = document.createElement('div');
+      avatar.className = 'provider-photo demo-avatar';
+      avatar.setAttribute('role', 'img');
+      avatar.setAttribute('aria-label', `Illustrative avatar for demo profile ${service.fullName}`);
+      avatar.textContent = service.fullName.split(' ').map(part=>part[0]).slice(0,2).join('').toUpperCase();
+      providerDetails.push(avatar);
+    }
+    if(service.isDemo){
+      const demoTag = document.createElement('span');
+      demoTag.className = 'demo-tag';
+      demoTag.textContent = 'DEMO PROFILE';
+      providerDetails.push(demoTag);
+    }
+    const title = document.createElement('h3');
+    title.textContent = service.name;
+    const category = document.createElement('p');
+    category.textContent = service.category;
+    const description = document.createElement('p');
+    description.textContent = service.description;
+    const location = createProviderMeta(`Town / city: ${service.location || 'Not provided'}`);
+    const currency = service.currency === 'PKR' ? 'PKR ' : '₹';
+    const hourlyRate = createProviderMeta(service.hourlyRate === undefined
+      ? 'Price per hour: Not provided'
+      : `Price: ${currency}${service.hourlyRate} / hour`);
+    const phone = document.createElement('p');
+    phone.className = 'provider-meta';
+    phone.dataset.englishText = service.phone
+      ? `Call: ${service.phone}`
+      : service.isDemo ? 'Demo profile: no public phone number' : 'Phone: Not provided';
+    if(service.phone){
+      const phoneLink = document.createElement('a');
+      phoneLink.href = `tel:${String(service.phone).replace(/[^+\d]/g, '')}`;
+      phoneLink.textContent = localizeProviderMeta(phone.dataset.englishText);
+      phone.append(phoneLink);
+    }else{
+      phone.textContent = localizeProviderMeta(phone.dataset.englishText);
+    }
+    const experience = createProviderMeta(`Experience: ${service.experience ?? 'Not provided'} years`);
+    providerDetails.push(providerName, icon, title, category, description, location, hourlyRate, phone, experience);
+    if(service.certification){
+      providerDetails.push(createProviderMeta(`Certification: ${service.certification}`));
+    }
+    const requestLink = document.createElement('a');
+    requestLink.className = 'request-link';
+    requestLink.href = '#requestDialog';
+    requestLink.dataset.providerName = service.fullName || '';
+    requestLink.dataset.serviceName = service.name;
+    requestLink.textContent = service.fullName
+      ? currentLanguage === 'ur' ? `${service.fullName} کو ہائر کریں` : `Hire ${service.fullName}`
+      : localizeText('Hire us');
+    requestLink.setAttribute('aria-label', currentLanguage === 'ur'
+      ? `${service.fullName || 'اس ماہر'} کو ${service.name} کے لیے ہائر کریں`
+      : `Hire ${service.fullName || 'this provider'} for ${service.name}`);
+    requestLink.addEventListener('click', event=>{
+      event.preventDefault();
+      openRequestForm(service.name, service.fullName);
+    });
+    const visitorReviews = readReviews().filter(review=>review.serviceId === service.id);
+    const sampleReviews = service.demoReviews || [];
+    const serviceReviews = [
+      ...sampleReviews.map(review=>({...review, isSample:true})),
+      ...visitorReviews.map(review=>({...review, isSample:false}))
+    ];
+    const ratingSummaries = [];
+    if(sampleReviews.length){
+      const average = sampleReviews.reduce((total, review)=>total + Number(review.rating), 0) / sampleReviews.length;
+      const sampleSummary = createProviderMeta(`Sample rating: ${average.toFixed(1)} / 5 · ${sampleReviews.length} sample reviews`);
+      sampleSummary.classList.add('rating-summary', 'demo-rating');
+      ratingSummaries.push(sampleSummary);
+    }
+    if(visitorReviews.length){
+      const average = visitorReviews.reduce((total, review)=>total + Number(review.rating), 0) / visitorReviews.length;
+      const visitorSummary = createProviderMeta(`Visitor rating: ${average.toFixed(1)} / 5 · ${visitorReviews.length} ${visitorReviews.length === 1 ? 'review' : 'reviews'}`);
+      visitorSummary.classList.add('rating-summary');
+      ratingSummaries.push(visitorSummary);
+    }else if(!sampleReviews.length){
+      const emptySummary = createProviderMeta('No ratings yet');
+      emptySummary.classList.add('rating-summary');
+      ratingSummaries.push(emptySummary);
+    }
+    const reviewButton = document.createElement('button');
+    reviewButton.className = 'review-link';
+    reviewButton.type = 'button';
+    reviewButton.textContent = localizeText('Write a review');
+    reviewButton.addEventListener('click',()=>openReviewForm(service));
+    serviceCard.append(...providerDetails, ...ratingSummaries, reviewButton);
+    if(serviceReviews.length){
+      const reviewList = document.createElement('details');
+      reviewList.className = 'review-list';
+      const summary = document.createElement('summary');
+      summary.textContent = `${localizeText(service.isDemo ? 'Read sample reviews' : 'Read reviews')} (${serviceReviews.length})`;
+      reviewList.append(summary);
+      serviceReviews.slice().reverse().forEach(review=>{
+        const entry = document.createElement('div');
+        entry.className = 'review-entry';
+        const reviewer = document.createElement('strong');
+        reviewer.textContent = review.isSample ? `${localizeText(review.name)}${localizeText(' · sample')}` : review.name;
+        const stars = document.createElement('span');
+        stars.className = 'review-stars';
+        stars.textContent = ` ${'★'.repeat(Number(review.rating))}${'☆'.repeat(5 - Number(review.rating))}`;
+        stars.setAttribute('aria-label', `${review.rating} out of 5 stars`);
+        const comment = document.createElement('p');
+        comment.textContent = review.isSample ? `${localizeText('Sample review:')} ${review.comment}` : review.comment;
+        entry.append(reviewer, stars, comment);
+        reviewList.append(entry);
+      });
+      serviceCard.append(reviewList);
+    }
+    serviceCard.append(requestLink);
+    if(currentLanguage === 'ur') translateSubtree(serviceCard);
+    return serviceCard;
+  }
+
+  function renderSavedServices(){
+    const grid = document.getElementById('cardGrid');
+    const services = readServices();
+    let needsSave = false;
+    services.forEach(service=>{
+      if(service && !service.id){
+        service.id = createServiceId();
+        needsSave = true;
+      }
+      if(service && service.name && service.category && service.description){
+        grid.insertBefore(createServiceCard(service), document.getElementById('join'));
+      }
+    });
+    if(needsSave) writeServices(services);
+  }
+
+  function renderDemoServices(){
+    const grid = document.getElementById('cardGrid');
+    demoServices.forEach(service=>grid.insertBefore(createServiceCard(service), document.getElementById('join')));
+  }
+
+  function openRequestForm(serviceName, providerName=''){
+    document.getElementById('requestForm').reset();
+    document.getElementById('requestedService').value = serviceName;
+    document.getElementById('requestedProvider').value = providerName;
+    document.getElementById('requestDialogTitle').textContent = currentLanguage === 'ur'
+      ? providerName ? `${providerName} کو بک کریں` : `${localizeText(serviceName)} سروس بک کریں`
+      : providerName ? `Book ${providerName}` : `Book ${serviceName} service`;
+    const earliestDate = new Date();
+    earliestDate.setMinutes(earliestDate.getMinutes() - earliestDate.getTimezoneOffset());
+    document.getElementById('bookingDate').min = earliestDate.toISOString().slice(0, 10);
+    document.getElementById('requestConfirmation').style.display = 'none';
+    document.getElementById('requestConfirmation').replaceChildren();
+    document.getElementById('requestDialog').showModal();
+  }
+
+  document.querySelectorAll('#cardGrid > .card:not(.add)').forEach(card=>{
+    if(card.classList.contains('user-service')) return;
+    card.classList.add('category-card');
+    card.dataset.categoryName = card.querySelector('h3').textContent;
+    card.dataset.category = card.dataset.categoryName.toLowerCase();
+  });
+
+  document.querySelectorAll('#cardGrid > .category-card a').forEach(link=>{
+    link.addEventListener('click', event=>{
+      event.preventDefault();
+      showCategoryProviders(link.closest('.card').dataset.category);
+    });
+  });
+
+  document.getElementById('showAllCategories').addEventListener('click',()=>{
+    selectedCategory = '';
+    document.getElementById('search').value = '';
+    filterCards();
+  });
+
+  document.getElementById('requestMissingProvider').addEventListener('click',()=>{
+    if(selectedCategory) openRequestForm(selectedCategory);
+  });
+
+  function showCategoryProviders(categoryKey){
+    const category = [...document.querySelectorAll('#cardGrid > .category-card')]
+      .map(card=>card.dataset.categoryName)
+      .find(name=>name.toLowerCase() === categoryKey) || categoryKey;
+    selectedCategory = category;
+    document.getElementById('search').value = '';
+    updateCategoryResultsTitle();
+    document.getElementById('categories').scrollIntoView({behavior:'smooth', block:'start'});
+    filterCards();
+  }
+
+  document.getElementById('matcherForm').addEventListener('submit',event=>{
+    event.preventDefault();
+    const form = event.currentTarget;
+    selectedCategory = form.elements.category.value;
+    document.getElementById('search').value = form.elements.area.value.trim();
+    updateCategoryResultsTitle();
+    filterCards();
+    document.getElementById('categories').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  function updateCategoryResultsTitle(){
+    if(!selectedCategory) return;
+    const categoryLabel = localizeText(selectedCategory);
+    document.getElementById('categoryResultsTitle').textContent = currentLanguage === 'ur'
+      ? `${categoryLabel} کے ماہرین`
+      : `${categoryLabel} professionals`;
+  }
+
+  serviceForm.addEventListener('submit', async event=>{
+    event.preventDefault();
+    const form = event.currentTarget;
+    serviceSubmitButton.disabled = true;
+    const service = {
+      id:createServiceId(),
+      fullName:form.elements.providerName.value.trim(),
+      profilePhoto:profilePhotoData,
+      name:form.elements.serviceName.value.trim(),
+      category:form.elements.serviceCategory.value,
+      description:form.elements.serviceDescription.value.trim(),
+      location:form.elements.serviceLocation.value.trim(),
+      hourlyRate:form.elements.serviceRate.value,
+      phone:form.elements.servicePhone.value.trim(),
+      experience:form.elements.serviceExperience.value,
+      certification:form.elements.serviceCertification.value.trim()
+    };
+    const savedServices = readServices();
+    savedServices.push(service);
+    if(!writeServices(savedServices)){
+      document.getElementById('searchStatus').textContent = localizeText('Service added for this visit, but browser storage is unavailable.');
+    }
+    const serviceCard = createServiceCard(service);
+    document.getElementById('cardGrid').insertBefore(serviceCard, document.getElementById('join'));
+    document.getElementById('serviceDialog').close();
+    form.reset();
+    serviceCard.scrollIntoView({behavior:'smooth', block:'center'});
+    serviceSubmitButton.disabled = false;
+  });
+
+  document.getElementById('reviewForm').addEventListener('submit', event=>{
+    event.preventDefault();
+    const form = event.currentTarget;
+    const serviceId = form.elements.serviceId.value;
+    const review = {
+      serviceId,
+      name:form.elements.reviewerName.value.trim(),
+      rating:Number(form.elements.rating.value),
+      comment:form.elements.comment.value.trim()
+    };
+    const reviews = readReviews();
+    reviews.push(review);
+    if(!writeReviews(reviews)){
+      document.getElementById('searchStatus').textContent = localizeText('Review added for this visit, but browser storage is unavailable.');
+    }
+    const service = readServices().find(item=>item.id === serviceId) || demoServices.find(item=>item.id === serviceId);
+    const existingCard = document.querySelector(`.user-service[data-service-id="${CSS.escape(serviceId)}"]`);
+    if(service && existingCard) existingCard.replaceWith(createServiceCard(service));
+    document.getElementById('reviewDialog').close();
+  });
+
+  document.getElementById('requestForm').addEventListener('submit', event=>{
+    event.preventDefault();
+    const form = event.currentTarget;
+    const subject = `Booking request: ${form.elements.requestedService.value}`;
+    const body = [
+      `Service: ${form.elements.requestedService.value}`,
+      form.elements.requestedProvider.value ? `Preferred provider: ${form.elements.requestedProvider.value}` : '',
+      `Name: ${form.elements.customerName.value.trim()}`,
+      `Email: ${form.elements.customerEmail.value.trim()}`,
+      `Phone: ${form.elements.customerPhone.value.trim()}`,
+      `Meeting / service location: ${form.elements.meetingLocation.value.trim()}`,
+      `Preferred date: ${form.elements.bookingDate.value}`,
+      `Preferred time: ${form.elements.bookingTime.value}`,
+      '',
+      form.elements.requestDetails.value.trim()
+    ].join('\n');
+    const confirmation = document.getElementById('requestConfirmation');
+    const message = document.createElement('p');
+    message.textContent = localizeText('Your booking request is ready in an email draft. It is not sent or booked until you send the email.');
+    const emailLink = document.createElement('a');
+    emailLink.href = `mailto:hello@fixer.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    emailLink.textContent = localizeText('Open email to send booking request');
+    confirmation.replaceChildren(message, emailLink);
+    confirmation.style.display = 'block';
+  });
+
+  document.getElementById('searchForm').addEventListener('submit', event=>{
+    event.preventDefault();
+    filterCards();
+  });
+
+  document.getElementById('search').addEventListener('input', filterCards);
+
+  function filterCards(){
+    const query = document.getElementById('search').value.trim().toLowerCase();
+    const cards = [...document.querySelectorAll('#cardGrid .card:not(.add)')];
+    let providerMatches = 0;
+    let matches = 0;
+    cards.forEach(card=>{
+      const isProvider = card.classList.contains('user-service');
+      const categoryMatches = !selectedCategory || (isProvider && card.dataset.category === selectedCategory.toLowerCase());
+      const visible = categoryMatches && (!query || card.innerText.toLowerCase().includes(query));
+      card.hidden = !visible;
+      if(visible){
+        matches++;
+        if(isProvider) providerMatches++;
+      }
+    });
+    document.getElementById('join').hidden = Boolean(query || selectedCategory);
+    document.getElementById('categoryResultsBar').hidden = !selectedCategory;
+    document.getElementById('emptyProviders').hidden = !selectedCategory || providerMatches > 0;
+    const categoryLabel = localizeText(selectedCategory);
+    document.getElementById('emptyProvidersMessage').textContent = currentLanguage === 'ur'
+      ? query ? `${categoryLabel} میں اس تلاش سے مطابقت رکھنے والا ماہر نہیں ملا۔` : `ابھی ${categoryLabel} کے ماہرین درج نہیں ہیں۔`
+      : query
+        ? `No ${selectedCategory} providers match “${document.getElementById('search').value.trim()}”.`
+        : localizeText(`No ${selectedCategory} providers are listed yet.`);
+    document.getElementById('searchStatus').textContent = currentLanguage === 'ur'
+      ? selectedCategory
+        ? `${providerMatches} ماہرین ${categoryLabel} میں دستیاب ہیں۔`
+        : query ? `${matches} سروسز “${document.getElementById('search').value.trim()}” کے لیے ملیں۔` : ''
+      : selectedCategory
+        ? `${providerMatches} ${providerMatches === 1 ? 'provider' : 'providers'} found in ${selectedCategory}.`
+        : query
+          ? `${matches} ${matches === 1 ? 'service' : 'services'} found for “${document.getElementById('search').value.trim()}”.`
+          : '';
+  }
+
+  document.querySelectorAll('#menu a').forEach(link=>link.addEventListener('click',()=>{
+    document.getElementById('menu').classList.remove('open');
+    const menuButton = document.querySelector('.hamburger');
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', 'Open navigation menu');
+  }));
+
+  renderSavedServices();
+  renderDemoServices();
+  updateAuthNav();
+  document.getElementById('languageSelector').addEventListener('change', event=>setLanguage(event.currentTarget.value));
+  let savedLanguage = 'en';
+  try{savedLanguage = localStorage.getItem('fixer.language') === 'ur' ? 'ur' : 'en';}catch{}
+  setLanguage(savedLanguage);
+</script>
+
+</body>
+</html>
