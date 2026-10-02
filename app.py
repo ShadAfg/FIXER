@@ -128,7 +128,11 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             session["csrf_token"] = token
         return token
 
-    def service_json(row: sqlite3.Row, reviews: list[dict[str, Any]]) -> dict[str, Any]:
+    def service_json(
+        row: sqlite3.Row,
+        reviews: list[dict[str, Any]],
+        is_owner: bool = False,
+    ) -> dict[str, Any]:
         return {
             "id": row["id"],
             "fullName": row["full_name"],
@@ -143,6 +147,57 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             "experience": row["experience"],
             "certification": row["certification"],
             "reviews": reviews,
+            "isOwner": is_owner,
+        }
+
+    def validated_service_values(payload: dict[str, Any]) -> dict[str, Any]:
+        full_name = required_text(payload, "fullName", 80)
+        name = required_text(payload, "name", 60)
+        category = required_text(payload, "category", 60)
+        description = required_text(payload, "description", 140)
+        location = required_text(payload, "location", 80)
+        phone = required_text(payload, "phone", 20)
+        certification = payload.get("certification", "")
+        certification = certification.strip() if isinstance(certification, str) else ""
+        if len(certification) > 120:
+            raise ApiError("Certification must be 120 characters or fewer.")
+        if category not in CATEGORIES:
+            raise ApiError("Choose a valid service category.")
+        if not PHONE_PATTERN.fullmatch(phone):
+            raise ApiError("Enter a valid phone number.")
+        try:
+            rate = Decimal(str(payload.get("hourlyRate", "")))
+            experience = int(payload.get("experience"))
+        except (InvalidOperation, TypeError, ValueError):
+            raise ApiError("Enter a valid hourly rate and years of experience.") from None
+        if not rate.is_finite() or rate < 0 or rate > 1_000_000:
+            raise ApiError("Hourly rate must be between 0 and 1,000,000.")
+        if experience < 0 or experience > 80:
+            raise ApiError("Experience must be between 0 and 80 years.")
+        photo = payload.get("profilePhoto", "")
+        if not isinstance(photo, str):
+            raise ApiError("Profile photo must be an image.")
+        if photo:
+            try:
+                prefix, encoded = photo.split(",", 1)
+                mime, signature = PHOTO_PREFIXES[prefix]
+                image_bytes = base64.b64decode(encoded, validate=True)
+            except (ValueError, KeyError, binascii.Error):
+                raise ApiError("Upload a valid JPEG, PNG, or WebP profile photo.") from None
+            if len(image_bytes) > 1_200_000 or not image_bytes.startswith(signature):
+                raise ApiError("Profile photo must be a valid image smaller than 1.2 MB.")
+            photo = f"data:{mime};base64,{encoded}"
+        return {
+            "full_name": full_name,
+            "name": name,
+            "category": category,
+            "description": description,
+            "location": location,
+            "hourly_rate": str(rate),
+            "phone": phone,
+            "experience": experience,
+            "certification": certification,
+            "profile_photo": photo,
         }
 
     @app.get("/")
@@ -215,9 +270,11 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     @app.get("/api/services")
     def list_services():
         db = get_db()
+        user_id = session.get("user_id")
         rows = db.execute(
             "SELECT services.*, users.name AS account_name FROM services "
-            "JOIN users ON users.id = services.user_id ORDER BY services.created_at DESC"
+            "JOIN users ON users.id = services.user_id WHERE services.is_active = 1 "
+            "ORDER BY services.created_at DESC"
         ).fetchall()
         review_rows = db.execute(
             "SELECT reviews.*, users.name AS reviewer_name FROM reviews "
@@ -231,62 +288,68 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
                 "comment": review["comment"], "createdAt": review["created_at"],
             })
         return jsonify(services=[
-            service_json(row, reviews_by_service.get(row["id"], [])) for row in rows
+            service_json(row, reviews_by_service.get(row["id"], []), row["user_id"] == user_id)
+            for row in rows
         ])
 
     @app.post("/api/services")
     @login_required
     def create_service():
-        payload = json_body()
-        full_name = required_text(payload, "fullName", 80)
-        name = required_text(payload, "name", 60)
-        category = required_text(payload, "category", 60)
-        description = required_text(payload, "description", 140)
-        location = required_text(payload, "location", 80)
-        phone = required_text(payload, "phone", 20)
-        certification = payload.get("certification", "")
-        certification = certification.strip() if isinstance(certification, str) else ""
-        if len(certification) > 120:
-            raise ApiError("Certification must be 120 characters or fewer.")
-        if category not in CATEGORIES:
-            raise ApiError("Choose a valid service category.")
-        if not PHONE_PATTERN.fullmatch(phone):
-            raise ApiError("Enter a valid phone number.")
-        try:
-            rate = Decimal(str(payload.get("hourlyRate", "")))
-            experience = int(payload.get("experience"))
-        except (InvalidOperation, TypeError, ValueError):
-            raise ApiError("Enter a valid hourly rate and years of experience.") from None
-        if not rate.is_finite() or rate < 0 or rate > 1_000_000:
-            raise ApiError("Hourly rate must be between 0 and 1,000,000.")
-        if experience < 0 or experience > 80:
-            raise ApiError("Experience must be between 0 and 80 years.")
-        photo = payload.get("profilePhoto", "")
-        if not isinstance(photo, str):
-            raise ApiError("Profile photo must be an image.")
-        if photo:
-            try:
-                prefix, encoded = photo.split(",", 1)
-                mime, signature = PHOTO_PREFIXES[prefix]
-                image_bytes = base64.b64decode(encoded, validate=True)
-            except (ValueError, KeyError, binascii.Error):
-                raise ApiError("Upload a valid JPEG, PNG, or WebP profile photo.") from None
-            if len(image_bytes) > 1_200_000 or not image_bytes.startswith(signature):
-                raise ApiError("Profile photo must be a valid image smaller than 1.2 MB.")
-            photo = f"data:{mime};base64,{encoded}"
+        values = validated_service_values(json_body())
         service_id = str(uuid.uuid4())
         user = g.current_user
         created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         get_db().execute(
             "INSERT INTO services (id, user_id, full_name, name, category, description, location, "
-            "hourly_rate, currency, phone, experience, certification, profile_photo, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (service_id, user["id"], full_name, name, category, description, location,
-             str(rate), "INR", phone, experience, certification, photo, created_at),
+            "hourly_rate, currency, phone, experience, certification, profile_photo, created_at, is_active) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+            (service_id, user["id"], values["full_name"], values["name"], values["category"],
+             values["description"], values["location"], values["hourly_rate"], "INR",
+             values["phone"], values["experience"], values["certification"],
+             values["profile_photo"], created_at),
         )
         get_db().commit()
         row = get_db().execute("SELECT * FROM services WHERE id = ?", (service_id,)).fetchone()
-        return jsonify(service=service_json(row, [])), 201
+        return jsonify(service=service_json(row, [], True)), 201
+
+    @app.patch("/api/services/<service_id>")
+    @login_required
+    def update_service(service_id: str):
+        db = get_db()
+        row = db.execute(
+            "SELECT * FROM services WHERE id = ? AND is_active = 1", (service_id,)
+        ).fetchone()
+        if row is None:
+            raise ApiError("Service listing not found.", 404)
+        if row["user_id"] != g.current_user["id"]:
+            raise ApiError("You can only edit your own service listings.", 403)
+        values = validated_service_values(json_body())
+        db.execute(
+            "UPDATE services SET full_name = ?, name = ?, category = ?, description = ?, location = ?, "
+            "hourly_rate = ?, phone = ?, experience = ?, certification = ?, profile_photo = ? "
+            "WHERE id = ?",
+            (values["full_name"], values["name"], values["category"], values["description"],
+             values["location"], values["hourly_rate"], values["phone"], values["experience"],
+             values["certification"], values["profile_photo"], service_id),
+        )
+        db.commit()
+        updated = db.execute("SELECT * FROM services WHERE id = ?", (service_id,)).fetchone()
+        return jsonify(service=service_json(updated, [], True))
+
+    @app.delete("/api/services/<service_id>")
+    @login_required
+    def archive_service(service_id: str):
+        db = get_db()
+        row = db.execute(
+            "SELECT user_id FROM services WHERE id = ? AND is_active = 1", (service_id,)
+        ).fetchone()
+        if row is None:
+            raise ApiError("Service listing not found.", 404)
+        if row["user_id"] != g.current_user["id"]:
+            raise ApiError("You can only remove your own service listings.", 403)
+        db.execute("UPDATE services SET is_active = 0 WHERE id = ?", (service_id,))
+        db.commit()
+        return jsonify(ok=True)
 
     @app.post("/api/services/<service_id>/reviews")
     @login_required
@@ -327,14 +390,24 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             if user is None:
                 raise ApiError("Log in to view your booking requests.", 401)
             rows = get_db().execute(
-                "SELECT DISTINCT bookings.* FROM bookings "
+                "SELECT DISTINCT bookings.*, services.user_id AS provider_user_id FROM bookings "
                 "LEFT JOIN services ON services.id = bookings.service_id "
                 "WHERE bookings.customer_user_id = ? OR services.user_id = ? "
                 "ORDER BY bookings.created_at DESC",
                 (user["id"], user["id"]),
             ).fetchall()
-            return jsonify(bookings=[dict(row) for row in rows])
+            user_bookings = []
+            for row in rows:
+                booking = dict(row)
+                booking["is_provider"] = booking.pop("provider_user_id") == user["id"]
+                booking["is_customer"] = booking["customer_user_id"] == user["id"]
+                booking.pop("customer_user_id")
+                user_bookings.append(booking)
+            return jsonify(bookings=user_bookings)
 
+        user = current_user()
+        if user is None:
+            raise ApiError("Log in before sending a booking request.", 401)
         payload = json_body()
         service_id = payload.get("serviceId") or None
         requested_service = required_text(payload, "requestedService", 80)
@@ -343,13 +416,17 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             raise ApiError("Provider name must be 80 characters or fewer.")
         service = None
         if service_id:
-            service = get_db().execute("SELECT id, name, full_name FROM services WHERE id = ?", (service_id,)).fetchone()
+            service = get_db().execute(
+                "SELECT id, user_id, name, full_name FROM services WHERE id = ?", (service_id,)
+            ).fetchone()
             if service is None:
                 raise ApiError("This provider is not available for booking.", 404)
+            if service["user_id"] == user["id"]:
+                raise ApiError("You cannot book your own service listing.")
             requested_service = service["name"]
             requested_provider = service["full_name"]
-        customer_name = required_text(payload, "customerName", 80)
-        customer_email = required_text(payload, "customerEmail", 254).lower()
+        customer_name = user["name"]
+        customer_email = user["email"]
         customer_phone = required_text(payload, "customerPhone", 20)
         location = required_text(payload, "location", 240)
         details = required_text(payload, "details", 500)
@@ -367,7 +444,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         if parsed_date < date.today():
             raise ApiError("Choose today or a future date.")
         booking_id = str(uuid.uuid4())
-        customer_user_id = session.get("user_id")
+        customer_user_id = user["id"]
         created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         get_db().execute(
             "INSERT INTO bookings (id, service_id, customer_user_id, requested_service, requested_provider, "
@@ -382,6 +459,42 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             "id": booking_id, "reference": booking_id.split("-")[0].upper(),
             "status": "requested", "requestedService": requested_service,
         }), 201
+
+    @app.patch("/api/bookings/<booking_id>")
+    @login_required
+    def update_booking_status(booking_id: str):
+        payload = json_body()
+        next_status = payload.get("status")
+        if next_status not in {"accepted", "declined", "cancelled", "completed"}:
+            raise ApiError("Choose a valid booking status.")
+        db = get_db()
+        booking = db.execute(
+            "SELECT bookings.*, services.user_id AS provider_user_id FROM bookings "
+            "LEFT JOIN services ON services.id = bookings.service_id WHERE bookings.id = ?",
+            (booking_id,),
+        ).fetchone()
+        if booking is None:
+            raise ApiError("Booking request not found.", 404)
+        user_id = g.current_user["id"]
+        provider_transitions = {
+            "requested": {"accepted", "declined"},
+            "accepted": {"completed"},
+        }
+        customer_transitions = {
+            "requested": {"cancelled"},
+            "accepted": {"cancelled"},
+        }
+        if booking["provider_user_id"] == user_id:
+            allowed = provider_transitions.get(booking["status"], set())
+        elif booking["customer_user_id"] == user_id:
+            allowed = customer_transitions.get(booking["status"], set())
+        else:
+            raise ApiError("You cannot update this booking request.", 403)
+        if next_status not in allowed:
+            raise ApiError("That status change is not allowed.", 409)
+        db.execute("UPDATE bookings SET status = ? WHERE id = ?", (next_status, booking_id))
+        db.commit()
+        return jsonify(booking={"id": booking_id, "status": next_status})
 
     return app
 
@@ -415,7 +528,8 @@ def initialize_database(database_path: str) -> None:
                 experience INTEGER NOT NULL,
                 certification TEXT NOT NULL DEFAULT '',
                 profile_photo TEXT NOT NULL DEFAULT '',
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
             );
             CREATE TABLE IF NOT EXISTS reviews (
                 id TEXT PRIMARY KEY,
@@ -447,6 +561,13 @@ def initialize_database(database_path: str) -> None:
             CREATE INDEX IF NOT EXISTS bookings_service_idx ON bookings(service_id);
             """
         )
+        service_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(services)").fetchall()
+        }
+        if "is_active" not in service_columns:
+            connection.execute(
+                "ALTER TABLE services ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1"
+            )
     finally:
         connection.close()
 

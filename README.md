@@ -49,9 +49,14 @@ All mutation routes require the session's CSRF token in the `X-CSRF-Token` heade
 | `POST` | `/api/auth/logout` | Signed in | End session |
 | `GET` | `/api/services` | Public | List provider listings and reviews |
 | `POST` | `/api/services` | Signed in | Create provider listing |
+| `PATCH` | `/api/services/<id>` | Listing owner | Edit provider listing |
+| `DELETE` | `/api/services/<id>` | Listing owner | Archive listing without removing booking history |
 | `POST` | `/api/services/<id>/reviews` | Signed in | Create a review |
 | `GET` | `/api/bookings` | Signed in | List requests for the customer or provider |
-| `POST` | `/api/bookings` | Public | Store a booking request |
+| `POST` | `/api/bookings` | Signed in | Store an account-linked booking request |
+| `PATCH` | `/api/bookings/<id>` | Customer or provider | Cancel, accept, decline, or complete a request according to its current status |
+
+Booking status transitions are restricted by role: providers can accept or decline new requests and mark accepted requests complete; customers can cancel requested or accepted bookings.
 
 ## Before public deployment
 

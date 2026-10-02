@@ -153,6 +153,8 @@
   .service-form select:focus{outline:2px solid var(--teal);outline-offset:1px;}
   .service-form input[type="number"]{appearance:textfield;}
   .service-form .field-hint{color:#71817f;font-size:.78rem;font-weight:400;}
+  .service-form .password-visibility-toggle{display:flex;align-items:center;gap:8px;color:#526462;font-size:.85rem;font-weight:600;cursor:pointer;}
+  .service-form .password-visibility-toggle input{width:16px;height:16px;margin:0;accent-color:var(--teal);}
   .request-dialog{width:min(520px,calc(100% - 32px));}
   .review-dialog{width:min(520px,calc(100% - 32px));}
   .auth-dialog{width:min(460px,calc(100% - 32px));}
@@ -165,6 +167,14 @@
   .booking-entry h3{margin-bottom:6px;color:var(--teal-dark);font-size:1rem;}
   .booking-entry p{margin:4px 0;color:var(--text);font-size:.88rem;overflow-wrap:anywhere;}
   .booking-entry strong{color:var(--dark);}
+  .booking-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .booking-actions button{min-height:38px;padding:8px 12px;border:1px solid #cbd8d6;border-radius:6px;background:#fff;color:var(--teal-dark);font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
+  .booking-actions button:hover{border-color:var(--teal);background:#edf7f4;}
+  .booking-actions .booking-danger{color:#9c3429;}
+  .provider-card-actions{justify-content:flex-end;gap:6px;}
+  .listing-action{min-height:34px;padding:6px 9px;border:1px solid #cbd8d6;border-radius:6px;background:#fff;color:var(--teal-dark);font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;}
+  .listing-action:hover{border-color:var(--teal);background:#edf7f4;}
+  .listing-action.remove-listing{color:#9c3429;}
   .privacy-dialog{width:min(520px,calc(100% - 32px));}
   .privacy-dialog p{margin:12px 0;color:var(--text);}
   .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
@@ -432,6 +442,10 @@
     <label for="confirmPassword">Confirm password
       <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
     </label>
+    <label class="password-visibility-toggle" for="showRegistrationPasswords">
+      <input id="showRegistrationPasswords" type="checkbox">
+      <span>Show passwords</span>
+    </label>
     <div class="dialog-actions">
       <button class="cancel" type="button" onclick="closeDialog('authDialog')">Cancel</button>
       <button class="submit" type="submit">Create account</button>
@@ -567,6 +581,9 @@
   let currentAccount = null;
   let pendingServiceForm = false;
   let pendingReviewService = null;
+  let pendingBooking = null;
+  let editingServiceId = '';
+  let editingServicePhoto = '';
 
   async function apiRequest(path, options={}){
     const method = (options.method || 'GET').toUpperCase();
@@ -713,6 +730,8 @@
     'FIXER connects people who need a job done with independent local service providers. Browse service categories, compare provider details, and send a booking request with your preferred location and time.':'FIXER کام کروانے کے خواہش مند افراد کو مقامی آزاد سروس فراہم کرنے والوں سے ملاتا ہے۔ سروس کی اقسام دیکھیں، فراہم کنندگان کی تفصیلات کا موازنہ کریں، اور اپنی پسندیدہ جگہ اور وقت کے ساتھ بکنگ کی درخواست بھیجیں۔',
     'Log in':'لاگ اِن', 'Create account':'اکاؤنٹ بنائیں', 'Log out':'لاگ آؤٹ', '+ Add Your Service':'اپنی سروس شامل کریں',
     'My requests':'میری درخواستیں', 'Loading your requests...':'آپ کی درخواستیں لوڈ ہو رہی ہیں...', 'No booking requests yet.':'ابھی کوئی بکنگ درخواست نہیں۔',
+    'Accept booking':'درخواست قبول کریں', 'Decline request':'درخواست مسترد کریں', 'Mark complete':'مکمل قرار دیں', 'Cancel request':'درخواست منسوخ کریں',
+    'requested':'درخواست بھیجی گئی', 'accepted':'منظور شدہ', 'declined':'مسترد', 'cancelled':'منسوخ', 'completed':'مکمل',
     'Saved pros':'محفوظ ماہرین', 'Show all providers':'تمام ماہرین دکھائیں', 'Save provider':'ماہر کو محفوظ کریں', 'Remove from saved pros':'محفوظ فہرست سے ہٹائیں',
     'No saved providers yet. Use the heart on a provider card to keep one here.':'ابھی کوئی ماہر محفوظ نہیں۔ کسی ماہر کو یہاں رکھنے کے لیے اس کے کارڈ پر دل کے نشان کو منتخب کریں۔',
     'No saved providers match this search.':'اس تلاش سے کوئی محفوظ ماہر نہیں ملا۔', 'Could not save this provider in browser storage.':'یہ ماہر براؤزر اسٹوریج میں محفوظ نہیں ہو سکا۔',
@@ -776,7 +795,7 @@
     'Packers & Movers':'پیکرز اور موورز', 'Shifting, Loading, Transportation':'شفٹنگ، لوڈنگ اور نقل و حمل',
     'General Labor':'عام مزدوری', 'Helpers, Loaders, Daily-Wage Workers':'مددگار، لوڈر اور یومیہ مزدور',
     'Add Your Service':'اپنی سروس شامل کریں', 'Are you a skilled worker? Join FIXER and get customers.':'کیا آپ ہنر مند ہیں؟ FIXER میں شامل ہوں اور گاہک حاصل کریں۔',
-    'Register Free →':'مفت رجسٹر کریں →', 'List your service':'اپنی سروس درج کریں',
+    'Register Free →':'مفت رجسٹر کریں →', 'List your service':'اپنی سروس درج کریں', 'Edit your service':'اپنی سروس میں ترمیم کریں',
     'Your listing is stored on the FIXER server and visible to visitors.':'آپ کی لسٹنگ FIXER سرور پر محفوظ ہوگی اور وزیٹرز کو نظر آئے گی۔',
     'Full name':'پورا نام', 'Your first and last name':'اپنا پورا نام لکھیں', 'Profile picture':'پروفائل تصویر',
     'Choose a clear face photo. Images are resized before saving in this browser.':'اپنی واضح تصویر منتخب کریں۔ تصویر براؤزر میں محفوظ کرنے سے پہلے چھوٹی کی جائے گی۔',
@@ -787,14 +806,16 @@
     'Experience (years)':'تجربہ (سال)', 'e.g. 5':'مثلاً 5', 'Certification (optional)':'سرٹیفکیٹ (اختیاری)',
     'Certificate or license name':'سرٹیفکیٹ یا لائسنس کا نام', 'Enter a certificate or license you hold. It is self-reported.':'اپنے سرٹیفکیٹ یا لائسنس کا نام لکھیں۔ اس کی تصدیق نہیں کی گئی۔',
     'What do you offer?':'آپ کون سی سروس دیتے ہیں؟', 'Describe your service in a sentence':'اپنی سروس مختصراً بیان کریں',
-    'Cancel':'منسوخ کریں', 'Add service':'سروس شامل کریں', 'Rate this service':'اس سروس کی درجہ بندی کریں',
+    'Cancel':'منسوخ کریں', 'Add service':'سروس شامل کریں', 'Save changes':'تبدیلیاں محفوظ کریں',
+    'Edit listing':'لسٹنگ میں ترمیم کریں', 'Remove listing':'لسٹنگ ہٹائیں', 'Current profile photo':'موجودہ پروفائل تصویر',
+    'Rate this service':'اس سروس کی درجہ بندی کریں',
     'Your rating':'آپ کی درجہ بندی', '1 star':'1 ستارہ', '2 stars':'2 ستارے', '3 stars':'3 ستارے', '4 stars':'4 ستارے', '5 stars':'5 ستارے',
     'Choose a rating':'درجہ بندی منتخب کریں', '5 - Excellent':'5 - بہترین', '4 - Good':'4 - اچھا',
     '3 - Average':'3 - اوسط', '2 - Poor':'2 - کمزور', '1 - Very poor':'1 - بہت کمزور',
     'Your review':'آپ کا جائزہ', 'Share your experience':'اپنا تجربہ بتائیں', 'Post review':'جائزہ بھیجیں',
     'Passwords are securely hashed by FIXER. Use a unique password you do not use elsewhere.':'FIXER آپ کے پاس ورڈ کو محفوظ طریقے سے ہیش کرتا ہے۔ ایسا منفرد پاس ورڈ استعمال کریں جو کہیں اور استعمال نہ ہو۔',
     'Email address':'ای میل ایڈریس', 'Password':'پاس ورڈ', 'Use at least 8 characters. Avoid reusing an important password.':'کم از کم 8 حروف استعمال کریں۔ اہم پاس ورڈ دوبارہ استعمال نہ کریں۔',
-    'Confirm password':'پاس ورڈ کی تصدیق', 'Book a service':'سروس بک کریں',
+    'Confirm password':'پاس ورڈ کی تصدیق', 'Show passwords':'پاس ورڈ دکھائیں', 'Book a service':'سروس بک کریں',
     'Add your contact details and where and when you’d like to meet the provider.':'اپنا رابطہ، ملاقات کی جگہ اور پسندیدہ وقت درج کریں۔',
     'Service':'سروس', 'Your name':'آپ کا نام', 'Meeting / service location':'ملاقات / سروس کا مقام',
     'Street address, area, and city':'گلی، علاقہ اور شہر کا پتہ', 'Preferred date':'پسندیدہ تاریخ', 'Preferred time':'پسندیدہ وقت',
@@ -918,7 +939,12 @@
   }
 
   function closeDialog(id){
-    if(id === 'authDialog') pendingServiceForm = false;
+    if(id === 'authDialog'){
+      pendingServiceForm = false;
+      pendingReviewService = null;
+      pendingBooking = null;
+    }
+    if(id === 'serviceDialog') resetServiceEditingState();
     document.getElementById(id).close();
   }
 
@@ -939,6 +965,7 @@
     if(!preserveServiceIntent){
       pendingServiceForm = false;
       pendingReviewService = null;
+      pendingBooking = null;
     }
     document.getElementById('menu').classList.remove('open');
     const menuButton = document.querySelector('.hamburger');
@@ -946,6 +973,7 @@
     menuButton.setAttribute('aria-label', localizeText('Open navigation menu'));
     document.getElementById('loginForm').reset();
     document.getElementById('registerForm').reset();
+    setRegistrationPasswordsVisible(false);
     setAuthMode(mode);
     document.getElementById('authDialog').showModal();
   }
@@ -964,9 +992,11 @@
   function startAccountSession(account){
     currentAccount = account;
     updateAuthNav();
+    loadProviderServices();
     document.getElementById('authDialog').close();
     document.getElementById('loginForm').reset();
     document.getElementById('registerForm').reset();
+    setRegistrationPasswordsVisible(false);
     if(pendingReviewService){
       const service = pendingReviewService;
       pendingReviewService = null;
@@ -974,8 +1004,23 @@
     }else if(pendingServiceForm){
       pendingServiceForm = false;
       openServiceForm();
+    }else if(pendingBooking){
+      const booking = pendingBooking;
+      pendingBooking = null;
+      openRequestForm(booking.serviceName, booking.providerName, booking.serviceId);
     }
   }
+
+  function setRegistrationPasswordsVisible(visible){
+    document.getElementById('showRegistrationPasswords').checked = visible;
+    ['registerPassword', 'confirmPassword'].forEach(id=>{
+      document.getElementById(id).type = visible ? 'text' : 'password';
+    });
+  }
+
+  document.getElementById('showRegistrationPasswords').addEventListener('change',event=>{
+    setRegistrationPasswordsVisible(event.currentTarget.checked);
+  });
 
   document.getElementById('registerForm').addEventListener('submit', async event=>{
     event.preventDefault();
@@ -1020,12 +1065,13 @@
       apiCsrfToken = '';
       await apiRequest('/api/csrf');
       updateAuthNav();
+      await loadProviderServices();
     }catch(error){
       document.getElementById('searchStatus').textContent = localizeText(error.message);
     }
   });
 
-  function openServiceForm(){
+  function openServiceForm(service=null){
     if(!currentAccount){
       pendingServiceForm = true;
       openAuth('register', true);
@@ -1035,8 +1081,40 @@
     const menuButton = document.querySelector('.hamburger');
     menuButton.setAttribute('aria-expanded', 'false');
     menuButton.setAttribute('aria-label', localizeText('Open navigation menu'));
-    document.getElementById('serviceForm').reset();
+    const form = document.getElementById('serviceForm');
+    form.reset();
+    editingServiceId = service?.id || '';
+    editingServicePhoto = service?.profilePhoto || '';
+    setServiceFormMode(Boolean(service));
+    if(service){
+      form.elements.providerName.value = service.fullName || '';
+      form.elements.serviceName.value = service.name || '';
+      form.elements.serviceCategory.value = service.category || '';
+      form.elements.serviceLocation.value = service.location || '';
+      form.elements.serviceRate.value = service.hourlyRate || '';
+      form.elements.servicePhone.value = service.phone || '';
+      form.elements.serviceExperience.value = service.experience ?? '';
+      form.elements.serviceCertification.value = service.certification || '';
+      form.elements.serviceDescription.value = service.description || '';
+      if(editingServicePhoto){
+        profilePhotoPreview.src = editingServicePhoto;
+        profilePhotoPreview.hidden = false;
+        profilePhotoStatus.textContent = localizeText('Current profile photo');
+      }
+    }
     document.getElementById('serviceDialog').showModal();
+  }
+
+  function setServiceFormMode(isEditing){
+    document.getElementById('serviceDialogTitle').textContent = localizeText(isEditing ? 'Edit your service' : 'List your service');
+    serviceSubmitButton.textContent = localizeText(isEditing ? 'Save changes' : 'Add service');
+    profilePhotoInput.required = !isEditing;
+  }
+
+  function resetServiceEditingState(){
+    editingServiceId = '';
+    editingServicePhoto = '';
+    setServiceFormMode(false);
   }
 
   function readSavedProviderIds(){
@@ -1226,6 +1304,19 @@
     const providerActions = document.createElement('div');
     providerActions.className = 'provider-card-actions';
     providerActions.append(favoriteButton);
+    if(service.isOwner){
+      const editButton = document.createElement('button');
+      editButton.className = 'listing-action';
+      editButton.type = 'button';
+      editButton.textContent = localizeText('Edit listing');
+      editButton.addEventListener('click',()=>openServiceForm(service));
+      const removeButton = document.createElement('button');
+      removeButton.className = 'listing-action remove-listing';
+      removeButton.type = 'button';
+      removeButton.textContent = localizeText('Remove listing');
+      removeButton.addEventListener('click',()=>archiveService(service));
+      providerActions.append(editButton, removeButton);
+    }
     const icon = document.createElement('div');
     icon.className = 'icon';
     icon.textContent = '🛠️';
@@ -1384,7 +1475,25 @@
     }
   }
 
+  async function archiveService(service){
+    if(!window.confirm(localizeText(`Remove ${service.name} from public listings?`))) return;
+    try{
+      await apiRequest(`/api/services/${encodeURIComponent(service.id)}`, {method:'DELETE'});
+      writeSavedProviderIds(readSavedProviderIds().filter(id=>id !== service.id));
+      updateSavedProviderButtons();
+      await loadProviderServices();
+    }catch(error){
+      document.getElementById('searchStatus').textContent = localizeText(error.message);
+    }
+  }
+
   function openRequestForm(serviceName, providerName='', serviceId=''){
+    if(!currentAccount){
+      pendingBooking = {serviceName, providerName, serviceId};
+      openAuth('login', true);
+      setAuthMessage('Log in before sending a booking request.');
+      return;
+    }
     document.getElementById('requestForm').reset();
     document.getElementById('requestedService').value = serviceName;
     document.getElementById('requestedProvider').value = providerName;
@@ -1427,7 +1536,7 @@
         const entry = document.createElement('article');
         entry.className = 'booking-entry';
         const title = document.createElement('h3');
-        title.textContent = `${booking.requested_service} · ${booking.status}`;
+        title.textContent = `${booking.requested_service} · ${localizeText(booking.status)}`;
         entry.append(title);
         const fields = [
           ['Provider', booking.requested_provider],
@@ -1447,10 +1556,45 @@
           line.append(labelElement, document.createTextNode(value));
           entry.append(line);
         });
+        const actions = [];
+        if(booking.is_provider && booking.status === 'requested'){
+          actions.push(['accepted', 'Accept booking', false], ['declined', 'Decline request', true]);
+        }else if(booking.is_provider && booking.status === 'accepted'){
+          actions.push(['completed', 'Mark complete', false]);
+        }else if(booking.is_customer && ['requested', 'accepted'].includes(booking.status)){
+          actions.push(['cancelled', 'Cancel request', true]);
+        }
+        if(actions.length){
+          const actionBar = document.createElement('div');
+          actionBar.className = 'booking-actions';
+          actions.forEach(([nextStatus, label, isDanger])=>{
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = localizeText(label);
+            if(isDanger) button.classList.add('booking-danger');
+            button.addEventListener('click',()=>changeBookingStatus(booking.id, nextStatus, button));
+            actionBar.append(button);
+          });
+          entry.append(actionBar);
+        }
         list.append(entry);
       });
     }catch(error){
       status.textContent = localizeText(error.message);
+    }
+  }
+
+  async function changeBookingStatus(bookingId,status,button){
+    button.disabled = true;
+    try{
+      await apiRequest(`/api/bookings/${encodeURIComponent(bookingId)}`, {
+        method:'PATCH', body:JSON.stringify({status})
+      });
+      document.getElementById('bookingsDialog').close();
+      await openMyRequests();
+    }catch(error){
+      document.getElementById('bookingsStatus').textContent = localizeText(error.message);
+      button.disabled = false;
     }
   }
 
@@ -1535,7 +1679,7 @@
     serviceSubmitButton.disabled = true;
     const service = {
       fullName:form.elements.providerName.value.trim(),
-      profilePhoto:profilePhotoData,
+      profilePhoto:profilePhotoData || editingServicePhoto,
       name:form.elements.serviceName.value.trim(),
       category:form.elements.serviceCategory.value,
       description:form.elements.serviceDescription.value.trim(),
@@ -1546,13 +1690,14 @@
       certification:form.elements.serviceCertification.value.trim()
     };
     try{
-      const payload = await apiRequest('/api/services', {method:'POST', body:JSON.stringify(service)});
-      const serviceCard = createServiceCard(payload.service);
-      document.getElementById('cardGrid').insertBefore(serviceCard, document.getElementById('join'));
-      updateSavedProviderButtons();
+      const isEditing = Boolean(editingServiceId);
+      const path = isEditing ? `/api/services/${encodeURIComponent(editingServiceId)}` : '/api/services';
+      const payload = await apiRequest(path, {method:isEditing ? 'PATCH' : 'POST', body:JSON.stringify(service)});
       document.getElementById('serviceDialog').close();
       form.reset();
-      serviceCard.scrollIntoView({behavior:'smooth', block:'center'});
+      resetServiceEditingState();
+      await loadProviderServices();
+      document.querySelector(`.user-service[data-service-id="${CSS.escape(payload.service.id)}"]`)?.scrollIntoView({behavior:'smooth', block:'center'});
     }catch(error){
       document.getElementById('searchStatus').textContent = localizeText(error.message);
     }finally{
