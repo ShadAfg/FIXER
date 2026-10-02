@@ -585,6 +585,18 @@
   let editingServiceId = '';
   let editingServicePhoto = '';
 
+  async function readApiResponse(response){
+    const contentType = response.headers.get('content-type') || '';
+    if(!contentType.toLowerCase().includes('application/json')){
+      throw new Error(localizeText('The FIXER API returned a web page instead of JSON. Start the Flask backend and open the site at http://127.0.0.1:5000; GitHub Pages and file URLs cannot create accounts.'));
+    }
+    try{
+      return await response.json();
+    }catch{
+      throw new Error(localizeText('The FIXER API response was unreadable. Restart the Flask backend and try again.'));
+    }
+  }
+
   async function apiRequest(path, options={}){
     const method = (options.method || 'GET').toUpperCase();
     const headers = {Accept:'application/json', ...options.headers};
@@ -592,7 +604,7 @@
     if(!['GET', 'HEAD', 'OPTIONS'].includes(method)){
       if(!apiCsrfToken){
         const csrfResponse = await fetch('/api/csrf', {credentials:'same-origin'});
-        const csrfPayload = await csrfResponse.json();
+        const csrfPayload = await readApiResponse(csrfResponse);
         if(!csrfResponse.ok) throw new Error(csrfPayload.error || 'Could not start a secure session.');
         apiCsrfToken = csrfPayload.csrfToken;
       }
@@ -604,7 +616,7 @@
       headers,
       credentials:'same-origin'
     });
-    const payload = await response.json().catch(()=>({}));
+    const payload = await readApiResponse(response);
     if(!response.ok) throw new Error(payload.error || 'The request could not be completed.');
     if(payload.csrfToken) apiCsrfToken = payload.csrfToken;
     return payload;
@@ -730,6 +742,8 @@
     'FIXER connects people who need a job done with independent local service providers. Browse service categories, compare provider details, and send a booking request with your preferred location and time.':'FIXER کام کروانے کے خواہش مند افراد کو مقامی آزاد سروس فراہم کرنے والوں سے ملاتا ہے۔ سروس کی اقسام دیکھیں، فراہم کنندگان کی تفصیلات کا موازنہ کریں، اور اپنی پسندیدہ جگہ اور وقت کے ساتھ بکنگ کی درخواست بھیجیں۔',
     'Log in':'لاگ اِن', 'Create account':'اکاؤنٹ بنائیں', 'Log out':'لاگ آؤٹ', '+ Add Your Service':'اپنی سروس شامل کریں',
     'My requests':'میری درخواستیں', 'Loading your requests...':'آپ کی درخواستیں لوڈ ہو رہی ہیں...', 'No booking requests yet.':'ابھی کوئی بکنگ درخواست نہیں۔',
+    'The FIXER API returned a web page instead of JSON. Start the Flask backend and open the site at http://127.0.0.1:5000; GitHub Pages and file URLs cannot create accounts.':'FIXER API نے JSON کے بجائے ویب صفحہ واپس کیا۔ Flask سرور چلائیں اور سائٹ http://127.0.0.1:5000 پر کھولیں؛ GitHub Pages اور فائل سے اکاؤنٹ نہیں بنایا جا سکتا۔',
+    'The FIXER API response was unreadable. Restart the Flask backend and try again.':'FIXER API کا جواب پڑھا نہیں جا سکا۔ Flask سرور دوبارہ چلائیں اور کوشش کریں۔',
     'Accept booking':'درخواست قبول کریں', 'Decline request':'درخواست مسترد کریں', 'Mark complete':'مکمل قرار دیں', 'Cancel request':'درخواست منسوخ کریں',
     'requested':'درخواست بھیجی گئی', 'accepted':'منظور شدہ', 'declined':'مسترد', 'cancelled':'منسوخ', 'completed':'مکمل',
     'Saved pros':'محفوظ ماہرین', 'Show all providers':'تمام ماہرین دکھائیں', 'Save provider':'ماہر کو محفوظ کریں', 'Remove from saved pros':'محفوظ فہرست سے ہٹائیں',
