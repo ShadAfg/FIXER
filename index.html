@@ -1080,6 +1080,10 @@
       await apiRequest('/api/csrf');
       updateAuthNav();
       await loadProviderServices();
+      document.getElementById('menu').classList.remove('open');
+      const menuButton = document.querySelector('.hamburger');
+      menuButton.setAttribute('aria-expanded', 'false');
+      menuButton.setAttribute('aria-label', localizeText('Open navigation menu'));
     }catch(error){
       document.getElementById('searchStatus').textContent = localizeText(error.message);
     }
@@ -1435,7 +1439,7 @@
     reviewButton.textContent = localizeText('Write a review');
     reviewButton.addEventListener('click',()=>openReviewForm(service));
     serviceCard.append(providerActions, ...providerDetails, ...ratingSummaries);
-    if(!service.isDemo) serviceCard.append(reviewButton);
+    if(!service.isDemo && !service.isOwner) serviceCard.append(reviewButton);
     if(serviceReviews.length){
       const reviewList = document.createElement('details');
       reviewList.className = 'review-list';
@@ -1458,7 +1462,7 @@
       });
       serviceCard.append(reviewList);
     }
-    serviceCard.append(requestLink);
+    if(!service.isOwner) serviceCard.append(requestLink);
     if(currentLanguage === 'ur') translateSubtree(serviceCard);
     return serviceCard;
   }

@@ -96,6 +96,17 @@ class BackendApiTests(unittest.TestCase):
         listed = self.client.get("/api/services").json["services"]
         self.assertEqual(len(listed), 1)
         self.assertEqual(listed[0]["id"], service["id"])
+        self_review = self.post_json(f"/api/services/{service['id']}/reviews", {
+            "rating": 5, "comment": "Providers cannot review their own listings."
+        })
+        self.assertEqual(self_review.status_code, 403)
+        self_booking = self.post_json("/api/bookings", {
+            "serviceId": service["id"], "requestedService": service["name"],
+            "customerPhone": "+92 300 1234567", "location": "Lahore",
+            "date": (date.today() + timedelta(days=1)).isoformat(), "time": "10:30",
+            "details": "Providers cannot book their own listings.",
+        })
+        self.assertEqual(self_booking.status_code, 400)
 
         customer_client = self.app.test_client()
         customer_token = customer_client.get("/api/csrf").json["csrfToken"]

@@ -363,11 +363,13 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         if rating < 1 or rating > 5:
             raise ApiError("Choose a rating from 1 to 5.")
         db = get_db()
-        service = db.execute("SELECT id FROM services WHERE id = ?", (service_id,)).fetchone()
+        service = db.execute("SELECT id, user_id FROM services WHERE id = ?", (service_id,)).fetchone()
         if service is None:
             raise ApiError("This provider is not available for reviews.", 404)
         review_id = str(uuid.uuid4())
         user = g.current_user
+        if service["user_id"] == user["id"]:
+            raise ApiError("You cannot review your own service listing.", 403)
         try:
             db.execute(
                 "INSERT INTO reviews (id, service_id, user_id, rating, comment, created_at) "
