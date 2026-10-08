@@ -38,6 +38,8 @@
   #accountNavItem{display:flex;align-items:center;gap:12px;}
   #accountNavItem[hidden]{display:none;}
   .account-label{color:var(--teal-dark);font-size:.9rem;font-weight:700;}
+  .notification-count{display:inline-grid;min-width:20px;height:20px;padding:0 5px;place-items:center;border-radius:10px;background:#b42318;color:#fff;font-size:.75rem;font-weight:800;line-height:1;}
+  .notification-count[hidden]{display:none;}
   .language-control select{min-height:40px;padding:7px 10px;border:1px solid #cbd8d6;border-radius:6px;background:#fff;color:var(--dark);font:inherit;font-size:.9rem;cursor:pointer;}
   .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
   .btn-y{background:var(--yellow-btn);color:var(--teal-dark);padding:11px 24px;border-radius:50px;
@@ -83,9 +85,39 @@
   .category-results-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;max-width:1150px;margin:0 auto 20px;}
   .category-results-bar[hidden]{display:none;}
   .category-results-bar h3{color:var(--teal-dark);font-size:1.2rem;}
-  .category-results-bar button,.empty-providers button{padding:9px 14px;border:1px solid var(--teal);border-radius:6px;background:#fff;color:var(--teal-dark);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;}
-  .empty-providers{max-width:700px;margin:24px auto;padding:20px;border-left:4px solid var(--yellow-dark);background:#fffbe6;text-align:center;}
-  .empty-providers p{margin-bottom:12px;color:var(--text);}
+  .category-results-bar button{padding:9px 14px;border:1px solid var(--teal);border-radius:6px;background:#fff;color:var(--teal-dark);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;}
+  .empty-providers{max-width:700px;margin:32px auto;padding:32px 24px;border-radius:14px;border:1px dashed #cbd8d6;background:#fafcfb;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.03);}
+  .empty-providers .empty-icon{font-size:2.4rem;margin-bottom:10px;}
+  .empty-providers h4{font-size:1.25rem;color:var(--teal-dark);margin-bottom:8px;}
+  .empty-providers p{margin-bottom:20px;color:var(--text);font-size:.95rem;line-height:1.5;}
+  .empty-providers .empty-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+  .empty-providers button{padding:10px 18px;border-radius:6px;font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;}
+  #requestMissingProvider{background:var(--yellow-btn);color:var(--teal-dark);border:0;}
+  #requestMissingProvider:hover{background:var(--yellow-dark);}
+  #resetFiltersBtn{background:#fff;border:1px solid var(--teal);color:var(--teal-dark);}
+  #resetFiltersBtn:hover{background:var(--grey);}
+  .empty-bookings{padding:36px 20px;text-align:center;background:#fafcfb;border-radius:12px;border:1px dashed #cbd8d6;margin:16px 0;}
+  .empty-bookings-icon{font-size:2.5rem;margin-bottom:10px;}
+  .empty-bookings h4{font-size:1.15rem;color:var(--teal-dark);margin-bottom:6px;}
+  .empty-bookings p{color:#687b78;font-size:.92rem;margin-bottom:16px;}
+  .empty-bookings button{padding:10px 18px;border-radius:50px;background:var(--yellow-btn);color:var(--teal-dark);font:inherit;font-weight:700;border:0;cursor:pointer;}
+  .empty-bookings button:hover{background:var(--yellow-dark);}
+  .error-bookings{padding:28px 20px;text-align:center;background:#fff5f5;border-radius:12px;border:1px solid #fed7d7;margin:16px 0;color:#c53030;}
+  .error-bookings-icon{font-size:2rem;margin-bottom:8px;}
+  .error-bookings h4{font-size:1.1rem;color:#9b2c2c;margin-bottom:6px;}
+  .error-bookings p{color:#742a2a;font-size:.9rem;margin-bottom:14px;}
+  .error-bookings button{padding:8px 16px;border-radius:6px;background:#fff;border:1px solid #e53e3e;color:#e53e3e;font:inherit;font-weight:700;cursor:pointer;}
+  .error-bookings button:hover{background:#e53e3e;color:#fff;}
+  .bookings-loading{padding:36px 20px;text-align:center;color:var(--teal);}
+  .bookings-spinner{width:36px;height:36px;margin:0 auto 12px;border:3px solid #e2eae8;border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .booking-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:800;letter-spacing:.3px;text-transform:uppercase;margin-left:8px;}
+  .booking-badge.requested{background:#fef3c7;color:#92400e;}
+  .booking-badge.accepted{background:#dcfce7;color:#166534;}
+  .booking-badge.declined{background:#fee2e2;color:#991b1b;}
+  .booking-badge.completed{background:#e0e7ff;color:#3730a3;}
+  .booking-badge.cancelled{background:#f3f4f6;color:#4b5563;}
+
 
   /* ---------- CATEGORY GRID ---------- */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;max-width:1150px;margin:0 auto;}
@@ -236,13 +268,13 @@
   <div class="logo">FIX<span>E</span>R</div>
   <ul id="menu">
     <li><a href="#categories">Categories</a></li>
-    <li><a href="#categories">Find a Pro</a></li>
+    <li><a href="#matcherTitle">Find a Pro</a></li>
     <li><a href="#about">About Us</a></li>
     <li><a href="#how">How It Works</a></li>
     <li class="language-control"><label for="languageSelector" class="visually-hidden">Language</label><select id="languageSelector" aria-label="Language"><option value="en">English</option><option value="ur">اردو</option></select></li>
     <li id="loginNavItem"><button type="button" class="nav-auth" onclick="openAuth('login')"><svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log in</span></button></li>
     <li id="registerNavItem"><button type="button" class="btn-y" onclick="openAuth('register')"><svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg><span>Create account</span></button></li>
-    <li id="myRequestsNavItem" hidden><button type="button" class="nav-auth" onclick="openMyRequests()">My requests</button></li>
+    <li id="myRequestsNavItem" hidden><button type="button" class="nav-auth" onclick="openMyRequests()">My requests <span class="notification-count" id="requestNotificationCount" aria-label="Unread booking notifications" hidden>0</span></button></li>
     <li id="accountNavItem" hidden><span class="account-label" id="accountName"></span><button type="button" class="nav-auth" id="logoutButton">Log out</button></li>
     <li><button type="button" class="btn-y" onclick="openServiceForm()">+ Add Your Service</button></li>
   </ul>
@@ -329,8 +361,13 @@
     </div>
   </div>
   <div class="empty-providers" id="emptyProviders" hidden>
-    <p id="emptyProvidersMessage"></p>
-    <button type="button" id="requestMissingProvider">Ask FIXER to find a provider</button>
+    <div class="empty-icon" aria-hidden="true">🔍</div>
+    <h4 id="emptyProvidersTitle">No providers found</h4>
+    <p id="emptyProvidersMessage">No providers found in this area yet — be the first to add your service!</p>
+    <div class="empty-actions">
+      <button type="button" id="requestMissingProvider">Add your service</button>
+      <button type="button" id="resetFiltersBtn">Browse all categories</button>
+    </div>
   </div>
 </section>
 
@@ -359,13 +396,13 @@
       </select>
     </label>
     <label for="serviceLocation">Town or city
-      <input id="serviceLocation" name="serviceLocation" type="text" maxlength="80" autocomplete="address-level2" placeholder="e.g. Pune" required>
+      <input id="serviceLocation" name="serviceLocation" type="text" maxlength="80" autocomplete="address-level2" placeholder="e.g. Lahore" required>
     </label>
-    <label for="serviceRate">Price per hour (INR)
+    <label for="serviceRate">Price per hour (PKR / Rs.)
       <input id="serviceRate" name="serviceRate" type="number" min="0" max="1000000" step="1" inputmode="decimal" placeholder="e.g. 500" required>
     </label>
     <label for="servicePhone">Phone number
-      <input id="servicePhone" name="servicePhone" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9+\(\) \-]{7,20}" maxlength="20" placeholder="e.g. +91 98765 43210" title="Enter 7 to 20 characters using digits, spaces, +, parentheses, or hyphens" required>
+      <input id="servicePhone" name="servicePhone" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9+\(\) \-]{7,20}" maxlength="20" placeholder="e.g. +92 300 1234567" title="Enter 7 to 20 characters using digits, spaces, +, parentheses, or hyphens" required>
     </label>
     <label for="serviceExperience">Experience (years)
       <input id="serviceExperience" name="serviceExperience" type="number" min="0" max="80" step="1" inputmode="numeric" placeholder="e.g. 5" required>
@@ -493,7 +530,7 @@
 
 <dialog class="service-dialog request-dialog" id="bookingsDialog" aria-labelledby="bookingsDialogTitle">
   <h2 id="bookingsDialogTitle">My requests</h2>
-  <p id="bookingsStatus" role="status" aria-live="polite">Loading your requests...</p>
+  <p id="bookingsStatus" role="status" aria-live="polite"></p>
   <div id="bookingsList" class="booking-list"></div>
   <div class="dialog-actions"><button class="cancel" type="button" onclick="closeDialog('bookingsDialog')">Close</button></div>
 </dialog>
@@ -501,7 +538,7 @@
 <dialog class="service-dialog privacy-dialog" id="privacyDialog" aria-labelledby="privacyDialogTitle">
   <h2 id="privacyDialogTitle">Privacy</h2>
   <p>Accounts, service listings, reviews, and booking requests are stored by the FIXER server. Public profiles show provider names, service details, area, rates, and phone numbers.</p>
-  <p>Booking requests are recorded for review. FIXER does not send email or SMS notifications yet.</p>
+  <p>Booking requests and account notifications are stored securely and dispatched via notification emails and in-app alerts.</p>
   <div class="dialog-actions"><button class="cancel" type="button" onclick="closeDialog('privacyDialog')">Close</button></div>
 </dialog>
 
@@ -559,7 +596,7 @@
     <div>
       <h4>Contact</h4>
       <a href="mailto:hello@fixer.com">hello@fixer.com</a>
-      <a href="tel:+913149294401">+91 3149294401</a>
+      <a href="tel:+923149294401">+92 314 9294401</a>
     </div>
     <div>
       <h4>About the Developer</h4>
@@ -576,6 +613,7 @@
   let profilePhotoData = '';
   let profilePhotoProcessing = 0;
   let selectedCategory = '';
+  let selectedArea = '';
   let showingSavedOnly = false;
   let apiCsrfToken = '';
   let currentAccount = null;
@@ -601,25 +639,38 @@
     const method = (options.method || 'GET').toUpperCase();
     const headers = {Accept:'application/json', ...options.headers};
     if(options.body !== undefined) headers['Content-Type'] = 'application/json';
-    if(!['GET', 'HEAD', 'OPTIONS'].includes(method)){
-      if(!apiCsrfToken){
-        const csrfResponse = await fetch('/api/csrf', {credentials:'same-origin'});
-        const csrfPayload = await readApiResponse(csrfResponse);
-        if(!csrfResponse.ok) throw new Error(csrfPayload.error || 'Could not start a secure session.');
-        apiCsrfToken = csrfPayload.csrfToken;
+    const controller = new AbortController();
+    const timeoutMs = options.timeout || 15000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      if(!['GET', 'HEAD', 'OPTIONS'].includes(method)){
+        if(!apiCsrfToken){
+          const csrfResponse = await fetch('/api/csrf', {credentials:'same-origin', signal:controller.signal});
+          const csrfPayload = await readApiResponse(csrfResponse);
+          if(!csrfResponse.ok) throw new Error(csrfPayload.error || 'Could not start a secure session.');
+          apiCsrfToken = csrfPayload.csrfToken;
+        }
+        headers['X-CSRF-Token'] = apiCsrfToken;
       }
-      headers['X-CSRF-Token'] = apiCsrfToken;
+      const response = await fetch(path, {
+        ...options,
+        method,
+        headers,
+        credentials:'same-origin',
+        signal: controller.signal
+      });
+      const payload = await readApiResponse(response);
+      if(!response.ok) throw new Error(payload.error || 'The request could not be completed.');
+      if(payload.csrfToken) apiCsrfToken = payload.csrfToken;
+      return payload;
+    } catch(err) {
+      if(err.name === 'AbortError') {
+        throw new Error(localizeText('Request timed out. Please check your connection and try again.'));
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
     }
-    const response = await fetch(path, {
-      ...options,
-      method,
-      headers,
-      credentials:'same-origin'
-    });
-    const payload = await readApiResponse(response);
-    if(!response.ok) throw new Error(payload.error || 'The request could not be completed.');
-    if(payload.csrfToken) apiCsrfToken = payload.csrfToken;
-    return payload;
   }
   const demoServices = [
     {
@@ -742,6 +793,8 @@
     'FIXER connects people who need a job done with independent local service providers. Browse service categories, compare provider details, and send a booking request with your preferred location and time.':'FIXER کام کروانے کے خواہش مند افراد کو مقامی آزاد سروس فراہم کرنے والوں سے ملاتا ہے۔ سروس کی اقسام دیکھیں، فراہم کنندگان کی تفصیلات کا موازنہ کریں، اور اپنی پسندیدہ جگہ اور وقت کے ساتھ بکنگ کی درخواست بھیجیں۔',
     'Log in':'لاگ اِن', 'Create account':'اکاؤنٹ بنائیں', 'Log out':'لاگ آؤٹ', '+ Add Your Service':'اپنی سروس شامل کریں',
     'My requests':'میری درخواستیں', 'Loading your requests...':'آپ کی درخواستیں لوڈ ہو رہی ہیں...', 'No booking requests yet.':'ابھی کوئی بکنگ درخواست نہیں۔',
+    'Could not load your requests:':'آپ کی درخواستیں لوڈ نہیں ہو سکیں:', 'No providers found in this area yet — be the first to add your service!':'اس علاقے میں ابھی کوئی ماہر نہیں ملا — اپنی سروس شامل کرنے والے پہلے فرد بنیں!',
+    'Price per hour (PKR / Rs.)':'فی گھنٹہ قیمت (PKR / روپے)', 'Unread booking notifications':'بغیر پڑھی ہوئی بکنگ کی اطلاعات',
     'The FIXER API returned a web page instead of JSON. Start the Flask backend and open the site at http://127.0.0.1:5000; GitHub Pages and file URLs cannot create accounts.':'FIXER API نے JSON کے بجائے ویب صفحہ واپس کیا۔ Flask سرور چلائیں اور سائٹ http://127.0.0.1:5000 پر کھولیں؛ GitHub Pages اور فائل سے اکاؤنٹ نہیں بنایا جا سکتا۔',
     'The FIXER API response was unreadable. Restart the Flask backend and try again.':'FIXER API کا جواب پڑھا نہیں جا سکا۔ Flask سرور دوبارہ چلائیں اور کوشش کریں۔',
     'Accept booking':'درخواست قبول کریں', 'Decline request':'درخواست مسترد کریں', 'Mark complete':'مکمل قرار دیں', 'Cancel request':'درخواست منسوخ کریں',
@@ -814,9 +867,18 @@
     'Full name':'پورا نام', 'Your first and last name':'اپنا پورا نام لکھیں', 'Profile picture':'پروفائل تصویر',
     'Choose a clear face photo. Images are resized before saving in this browser.':'اپنی واضح تصویر منتخب کریں۔ تصویر براؤزر میں محفوظ کرنے سے پہلے چھوٹی کی جائے گی۔',
     'No photo selected':'کوئی تصویر منتخب نہیں', 'Service name':'سروس کا نام', 'e.g. Appliance repair':'مثلاً آلات کی مرمت',
-    'Category':'قسم', 'Choose a category':'قسم منتخب کریں', 'Town or city':'قصبہ یا شہر', 'e.g. Pune':'مثلاً لاہور',
-    'Price per hour (INR)':'فی گھنٹہ قیمت (INR)', 'e.g. 500':'مثلاً 500', 'Phone number':'فون نمبر',
-    'e.g. +91 98765 43210':'مثلاً +92 300 1234567', 'Enter 7 to 20 characters using digits, spaces, +, parentheses, or hyphens':'7 سے 20 ہندسے درج کریں۔ +، قوسین اور ڈیش استعمال کر سکتے ہیں۔',
+    'Category':'قسم', 'Choose a category':'قسم منتخب کریں', 'Town or city':'قصبہ یا شہر', 'e.g. Lahore':'مثلاً لاہور',
+    'Price per hour (PKR / Rs.)':'فی گھنٹہ قیمت (PKR / روپے)', 'e.g. 500':'مثلاً 500', 'Phone number':'فون نمبر',
+    'e.g. +92 300 1234567':'مثلاً +92 300 1234567', 'Enter 7 to 20 characters using digits, spaces, +, parentheses, or hyphens':'7 سے 20 ہندسے درج کریں۔ +، قوسین اور ڈیش استعمال کر سکتے ہیں۔',
+    'No booking requests yet':'ابھی کوئی بکنگ درخواست نہیں',
+    'When you book a service or receive booking requests from customers, they will appear here.':'جب آپ کوئی سروس بک کریں گے یا گاہکوں سے درخواستیں وصول کریں گے، وہ یہاں نظر آئیں گی۔',
+    'Could not load requests':'درخواستیں لوڈ نہیں ہو سکیں',
+    'Retry':'دوبارہ کوشش کریں',
+    'Browse all categories':'تمام اقسام دیکھیں',
+    'No providers found':'کوئی ماہر نہیں ملا',
+    'Incoming Request':'موصولہ درخواست',
+    'Sent Request':'ارسال کردہ درخواست',
+    'Request timed out. Please check your connection and try again.':'درخواست کا وقت ختم ہو گیا۔ اپنا انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں۔',
     'Experience (years)':'تجربہ (سال)', 'e.g. 5':'مثلاً 5', 'Certification (optional)':'سرٹیفکیٹ (اختیاری)',
     'Certificate or license name':'سرٹیفکیٹ یا لائسنس کا نام', 'Enter a certificate or license you hold. It is self-reported.':'اپنے سرٹیفکیٹ یا لائسنس کا نام لکھیں۔ اس کی تصدیق نہیں کی گئی۔',
     'What do you offer?':'آپ کون سی سروس دیتے ہیں؟', 'Describe your service in a sentence':'اپنی سروس مختصراً بیان کریں',
@@ -1001,6 +1063,26 @@
     document.getElementById('accountName').textContent = account
       ? currentLanguage === 'ur' ? `${account.name}، خوش آمدید` : `Hi, ${account.name}`
       : '';
+    if(!account) setRequestNotificationCount(0);
+  }
+
+  function setRequestNotificationCount(count){
+    const badge = document.getElementById('requestNotificationCount');
+    if(!badge) return;
+    const notificationCount = Math.max(0, Number(count) || 0);
+    badge.textContent = notificationCount > 99 ? '99+' : String(notificationCount);
+    badge.hidden = notificationCount === 0;
+    badge.setAttribute('aria-label', `${notificationCount} ${localizeText('Unread booking notifications')}`);
+  }
+
+  async function refreshRequestNotificationCount(){
+    if(!currentAccount) return;
+    try{
+      const payload = await apiRequest('/api/bookings');
+      setRequestNotificationCount(payload.notification_count);
+    }catch(error){
+      document.getElementById('searchStatus').textContent = localizeText(`Could not refresh notifications: ${error.message}`);
+    }
   }
 
   function startAccountSession(account){
@@ -1313,6 +1395,7 @@
     serviceCard.className = service.isDemo ? 'card user-service demo-service' : 'card user-service';
     serviceCard.dataset.serviceId = service.id;
     serviceCard.dataset.category = service.category.toLowerCase();
+    serviceCard.dataset.location = (service.location || '').toLowerCase();
     const favoriteButton = document.createElement('button');
     favoriteButton.className = 'favorite-button';
     favoriteButton.type = 'button';
@@ -1371,10 +1454,10 @@
     const description = document.createElement('p');
     description.textContent = service.description;
     const location = createProviderMeta(`Town / city: ${service.location || 'Not provided'}`);
-    const currency = service.currency === 'PKR' ? 'PKR ' : '₹';
+    const currency = formatPrice(service.hourlyRate);
     const hourlyRate = createProviderMeta(service.hourlyRate === undefined
       ? 'Price per hour: Not provided'
-      : `Price: ${currency}${service.hourlyRate} / hour`);
+      : `Price: ${currency} / hour`);
     const phone = document.createElement('p');
     phone.className = 'provider-meta';
     phone.dataset.englishText = service.phone
@@ -1484,6 +1567,12 @@
     demoServices.forEach(service=>grid.insertBefore(createServiceCard(service), document.getElementById('join')));
   }
 
+  function formatPrice(amount){
+    const numericAmount = Number(amount);
+    if(!Number.isFinite(numericAmount)) return 'Rs. 0';
+    return `Rs. ${new Intl.NumberFormat('en-PK', {maximumFractionDigits:0}).format(numericAmount)}`;
+  }
+
   async function loadProviderServices(){
     try{
       const payload = await apiRequest('/api/services');
@@ -1541,12 +1630,42 @@
     const list = document.getElementById('bookingsList');
     const status = document.getElementById('bookingsStatus');
     list.replaceChildren();
-    status.textContent = localizeText('Loading your requests...');
+    status.textContent = '';
+
+    const loader = document.createElement('div');
+    loader.className = 'bookings-loading';
+    loader.innerHTML = `<div class="bookings-spinner"></div><p>${localizeText('Loading your requests...')}</p>`;
+    list.append(loader);
     document.getElementById('bookingsDialog').showModal();
+
     try{
       const payload = await apiRequest('/api/bookings');
-      if(!payload.bookings.length){
-        status.textContent = localizeText('No booking requests yet.');
+      setRequestNotificationCount(payload.notification_count);
+      if(payload.notification_count){
+        try{
+          await apiRequest('/api/notifications/read', {method:'POST'});
+          setRequestNotificationCount(0);
+        }catch(err){
+          console.warn('Could not mark notifications as read:', err);
+        }
+      }
+      list.replaceChildren();
+      if(!payload.bookings || !payload.bookings.length){
+        status.textContent = '';
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-bookings';
+        emptyDiv.innerHTML = `
+          <div class="empty-bookings-icon">📋</div>
+          <h4>${localizeText('No booking requests yet')}</h4>
+          <p>${localizeText('When you book a service or receive booking requests from customers, they will appear here.')}</p>
+          <button type="button">${localizeText('Find a Pro')}</button>
+        `;
+        emptyDiv.querySelector('button').addEventListener('click', () => {
+          document.getElementById('bookingsDialog').close();
+          const target = document.getElementById('matcherTitle') || document.getElementById('categories');
+          target.scrollIntoView({behavior:'smooth'});
+        });
+        list.append(emptyDiv);
         return;
       }
       status.textContent = `${payload.bookings.length} ${localizeText('booking requests')}`;
@@ -1554,7 +1673,8 @@
         const entry = document.createElement('article');
         entry.className = 'booking-entry';
         const title = document.createElement('h3');
-        title.textContent = `${booking.requested_service} · ${localizeText(booking.status)}`;
+        const roleLabel = booking.is_provider ? `[${localizeText('Incoming Request')}]` : `[${localizeText('Sent Request')}]`;
+        title.innerHTML = `${booking.requested_service} <span class="booking-badge ${booking.status}">${localizeText(booking.status)}</span> <small style="font-size:0.8rem;color:#7a8a88;font-weight:normal;margin-left:6px;">${roleLabel}</small>`;
         entry.append(title);
         const fields = [
           ['Provider', booking.requested_provider],
@@ -1598,7 +1718,18 @@
         list.append(entry);
       });
     }catch(error){
-      status.textContent = localizeText(error.message);
+      status.textContent = '';
+      list.replaceChildren();
+      const errDiv = document.createElement('div');
+      errDiv.className = 'error-bookings';
+      errDiv.innerHTML = `
+        <div class="error-bookings-icon">⚠️</div>
+        <h4>${localizeText('Could not load requests')}</h4>
+        <p>${error.message || localizeText('Failed to load your booking requests.')}</p>
+        <button type="button">${localizeText('Retry')}</button>
+      `;
+      errDiv.querySelector('button').addEventListener('click', () => openMyRequests());
+      list.append(errDiv);
     }
   }
 
@@ -1632,8 +1763,10 @@
 
   document.getElementById('showAllCategories').addEventListener('click',()=>{
     selectedCategory = '';
+    selectedArea = '';
     showingSavedOnly = false;
     document.getElementById('search').value = '';
+    document.getElementById('matcherArea').value = '';
     updateSavedProviderButtons();
     updateCategoryResultsTitle();
     filterCards();
@@ -1641,14 +1774,31 @@
 
   document.getElementById('savedProvidersToggle').addEventListener('click',()=>{
     showingSavedOnly = !showingSavedOnly;
-    if(showingSavedOnly) selectedCategory = '';
+    if(showingSavedOnly){
+      selectedCategory = '';
+      selectedArea = '';
+    }
     updateSavedProviderButtons();
     updateCategoryResultsTitle();
     filterCards();
   });
 
   document.getElementById('requestMissingProvider').addEventListener('click',()=>{
-    if(selectedCategory) openRequestForm(selectedCategory);
+    openServiceForm();
+  });
+
+  document.getElementById('resetFiltersBtn')?.addEventListener('click',()=>{
+    selectedCategory = '';
+    selectedArea = '';
+    showingSavedOnly = false;
+    document.getElementById('search').value = '';
+    const matcherArea = document.getElementById('matcherArea');
+    if(matcherArea) matcherArea.value = '';
+    const matcherCat = document.getElementById('matcherCategory');
+    if(matcherCat) matcherCat.value = '';
+    updateSavedProviderButtons();
+    updateCategoryResultsTitle();
+    filterCards();
   });
 
   function showCategoryProviders(categoryKey){
@@ -1656,6 +1806,7 @@
       .map(card=>card.dataset.categoryName)
       .find(name=>name.toLowerCase() === categoryKey) || categoryKey;
     selectedCategory = category;
+    selectedArea = '';
     showingSavedOnly = false;
     document.getElementById('search').value = '';
     updateSavedProviderButtons();
@@ -1668,8 +1819,9 @@
     event.preventDefault();
     const form = event.currentTarget;
     selectedCategory = form.elements.category.value;
+    selectedArea = form.elements.area.value.trim().toLowerCase();
     showingSavedOnly = false;
-    document.getElementById('search').value = form.elements.area.value.trim();
+    document.getElementById('search').value = '';
     updateSavedProviderButtons();
     updateCategoryResultsTitle();
     filterCards();
@@ -1687,8 +1839,8 @@
     }
     const categoryLabel = localizeText(selectedCategory);
     document.getElementById('categoryResultsTitle').textContent = currentLanguage === 'ur'
-      ? `${categoryLabel} کے ماہرین`
-      : `${categoryLabel} professionals`;
+        ? `${categoryLabel} کے ماہرین${selectedArea ? ` — ${selectedArea}` : ''}`
+        : `${categoryLabel} professionals${selectedArea ? ` in ${selectedArea}` : ''}`;
   }
 
   serviceForm.addEventListener('submit', async event=>{
@@ -1790,8 +1942,9 @@
     cards.forEach(card=>{
       const isProvider = card.classList.contains('user-service');
       const categoryMatches = !selectedCategory || (isProvider && card.dataset.category === selectedCategory.toLowerCase());
+      const areaMatches = !selectedArea || (isProvider && card.dataset.location.includes(selectedArea));
       const savedMatches = !showingSavedOnly || (isProvider && savedIds.has(card.dataset.serviceId));
-      const visible = categoryMatches && savedMatches && (!query || card.innerText.toLowerCase().includes(query));
+      const visible = categoryMatches && areaMatches && savedMatches && (!query || card.innerText.toLowerCase().includes(query));
       card.hidden = !visible;
       if(visible){
         matches++;
@@ -1800,18 +1953,30 @@
     });
     document.getElementById('join').hidden = Boolean(query || selectedCategory || showingSavedOnly);
     document.getElementById('categoryResultsBar').hidden = !selectedCategory && !showingSavedOnly;
-    document.getElementById('emptyProviders').hidden = (!selectedCategory && !showingSavedOnly) || providerMatches > 0;
+    const hasFilter = Boolean(selectedCategory || selectedArea || showingSavedOnly || query);
+    const hasNoResults = hasFilter && (showingSavedOnly || selectedCategory || selectedArea ? providerMatches === 0 : matches === 0);
+    document.getElementById('emptyProviders').hidden = !hasNoResults;
     const categoryLabel = localizeText(selectedCategory);
     const searchQuery = document.getElementById('search').value.trim();
-    document.getElementById('emptyProvidersMessage').textContent = showingSavedOnly
-      ? searchQuery
-        ? currentLanguage === 'ur' ? 'اس تلاش سے کوئی محفوظ ماہر نہیں ملا۔' : `No saved providers match “${searchQuery}”.`
-        : localizeText('No saved providers yet. Use the heart on a provider card to keep one here.')
-      : currentLanguage === 'ur'
-      ? query ? `${categoryLabel} میں اس تلاش سے مطابقت رکھنے والا ماہر نہیں ملا۔` : `ابھی ${categoryLabel} کے ماہرین درج نہیں ہیں۔`
-      : query
-        ? `No ${selectedCategory} providers match “${searchQuery}”.`
-        : localizeText(`No ${selectedCategory} providers are listed yet.`);
+    let emptyMsg = '';
+    if(showingSavedOnly){
+      emptyMsg = query
+        ? (currentLanguage === 'ur' ? `اس تلاش سے کوئی محفوظ ماہر نہیں ملا۔` : `No saved providers match “${searchQuery}”.`)
+        : localizeText('No saved providers yet. Use the heart on a provider card to keep one here.');
+    } else if(selectedArea && providerMatches === 0){
+      emptyMsg = localizeText('No providers found in this area yet — be the first to add your service!');
+    } else if(selectedCategory && providerMatches === 0){
+      emptyMsg = currentLanguage === 'ur'
+        ? (query ? `${categoryLabel} میں اس تلاش سے مطابقت رکھنے والا ماہر نہیں ملا۔` : `ابھی ${categoryLabel} کے ماہرین درج نہیں ہیں۔`)
+        : (query ? `No ${selectedCategory} providers match “${searchQuery}”.` : localizeText(`No ${selectedCategory} providers are listed yet.`));
+    } else if(query && matches === 0){
+      emptyMsg = currentLanguage === 'ur'
+        ? `“${searchQuery}” کے لیے کوئی سروس یا ماہر نہیں ملا۔ اپنی سروس شامل کرنے والے پہلے بنیں!`
+        : `No services or providers found matching “${searchQuery}” — be the first to add your service!`;
+    } else {
+      emptyMsg = localizeText('No providers found in this area yet — be the first to add your service!');
+    }
+    document.getElementById('emptyProvidersMessage').textContent = emptyMsg;
     document.getElementById('searchStatus').textContent = currentLanguage === 'ur'
       ? selectedCategory
         ? `${providerMatches} ماہرین ${categoryLabel} میں دستیاب ہیں۔`

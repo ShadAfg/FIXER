@@ -38,6 +38,77 @@ class ApiError(Exception):
         self.status_code = status_code
 
 
+def send_email_notification(to_email: str, subject: str, text_content: str, html_content: str | None = None) -> bool:
+    """
+    Sends email notification via Resend API, SMTP, or logs if unconfigured.
+    Non-blocking / failsafe: will not raise exceptions that break request lifecycles.
+    """
+    if not to_email:
+        return False
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    smtp_host = os.environ.get("FIXER_SMTP_HOST")
+    from_email = os.environ.get("FIXER_EMAIL_FROM", "FIXER <notifications@fixer.com>")
+
+    # 1. Resend API
+    if resend_api_key:
+        try:
+            import json
+            import urllib.request
+            payload = {
+                "from": from_email,
+                "to": [to_email],
+                "subject": subject,
+                "text": text_content,
+            }
+            if html_content:
+                payload["html"] = html_content
+            req = urllib.request.Request(
+                "https://api.resend.com/emails",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "FIXER-Notifier/1.0",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return resp.status in (200, 201)
+        except Exception:
+            return False
+
+    # 2. SMTP Server
+    if smtp_host:
+        try:
+            import smtplib
+            from email.mime.multipart import MIMEMultipart
+            from email.mime.text import MIMEText
+
+            port = int(os.environ.get("FIXER_SMTP_PORT", 587))
+            user = os.environ.get("FIXER_SMTP_USER", "")
+            password = os.environ.get("FIXER_SMTP_PASS", "")
+
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = from_email
+            msg["To"] = to_email
+            msg.attach(MIMEText(text_content, "plain", "utf-8"))
+            if html_content:
+                msg.attach(MIMEText(html_content, "html", "utf-8"))
+
+            with smtplib.SMTP(smtp_host, port, timeout=10) as server:
+                server.starttls()
+                if user and password:
+                    server.login(user, password)
+                server.send_message(msg)
+            return True
+        except Exception:
+            return False
+
+    return True
+
+
+
 def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     app = Flask(__name__, static_folder=None)
     app.config.from_mapping(
@@ -304,7 +375,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             "hourly_rate, currency, phone, experience, certification, profile_photo, created_at, is_active) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
             (service_id, user["id"], values["full_name"], values["name"], values["category"],
-             values["description"], values["location"], values["hourly_rate"], "INR",
+             values["description"], values["location"], values["hourly_rate"], "PKR",
              values["phone"], values["experience"], values["certification"],
              values["profile_photo"], created_at),
         )
@@ -405,7 +476,11 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
                 booking["is_customer"] = booking["customer_user_id"] == user["id"]
                 booking.pop("customer_user_id")
                 user_bookings.append(booking)
-            return jsonify(bookings=user_bookings)
+            notification_count = get_db().execute(
+                "SELECT COUNT(*) FROM notifications WHERE recipient_user_id = ? AND read_at IS NULL",
+                (user["id"],),
+            ).fetchone()[0]
+            return jsonify(bookings=user_bookings, notification_count=notification_count)
 
         user = current_user()
         if user is None:
@@ -456,6 +531,27 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
              customer_name, customer_email, customer_phone, location, booking_date, booking_time,
              details, "requested", created_at),
         )
+        if service is not None:
+            notification_id = str(uuid.uuid4())
+            get_db().execute(
+                "INSERT INTO notifications (id, recipient_user_id, booking_id, event, created_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (notification_id, service["user_id"], booking_id, "booking_received", created_at),
+            )
+            provider_row = get_db().execute("SELECT email, name FROM users WHERE id = ?", (service["user_id"],)).fetchone()
+            if provider_row and provider_row["email"]:
+                email_subj = f"New Booking Request: {requested_service} — FIXER"
+                email_text = (
+                    f"Hello {provider_row['name']},\n\n"
+                    f"You have received a new booking request for '{requested_service}'!\n\n"
+                    f"Customer: {customer_name}\n"
+                    f"Phone: {customer_phone}\n"
+                    f"Date & Time: {booking_date} at {booking_time}\n"
+                    f"Location: {location}\n"
+                    f"Job details: {details}\n\n"
+                    f"Log in to FIXER and visit 'My requests' to review, accept, or decline."
+                )
+                send_email_notification(provider_row["email"], email_subj, email_text)
         get_db().commit()
         return jsonify(booking={
             "id": booking_id, "reference": booking_id.split("-")[0].upper(),
@@ -495,8 +591,52 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         if next_status not in allowed:
             raise ApiError("That status change is not allowed.", 409)
         db.execute("UPDATE bookings SET status = ? WHERE id = ?", (next_status, booking_id))
+        if next_status in {"accepted", "declined"} and booking["customer_user_id"]:
+            notification_id = str(uuid.uuid4())
+            db.execute(
+                "INSERT INTO notifications (id, recipient_user_id, booking_id, event, created_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (notification_id, booking["customer_user_id"], booking_id,
+                 f"booking_{next_status}", datetime.now(timezone.utc).isoformat(timespec="seconds")),
+            )
+            if booking["customer_email"]:
+                action_text = "accepted" if next_status == "accepted" else "declined"
+                provider_name = booking["requested_provider"] or "The provider"
+                subj = f"Booking Request {action_text.capitalize()}: {booking['requested_service']} — FIXER"
+                text = (
+                    f"Hello {booking['customer_name']},\n\n"
+                    f"{provider_name} has {action_text} your booking request for '{booking['requested_service']}'.\n\n"
+                    f"Date & Time: {booking['booking_date']} at {booking['booking_time']}\n"
+                    f"Location: {booking['location']}\n\n"
+                    f"View the booking details anytime in 'My requests' on FIXER."
+                )
+                send_email_notification(booking["customer_email"], subj, text)
         db.commit()
         return jsonify(booking={"id": booking_id, "status": next_status})
+
+    @app.get("/api/notifications")
+    @login_required
+    def list_notifications():
+        user = g.current_user
+        rows = get_db().execute(
+            "SELECT notifications.*, bookings.requested_service, bookings.status AS booking_status "
+            "FROM notifications "
+            "LEFT JOIN bookings ON bookings.id = notifications.booking_id "
+            "WHERE recipient_user_id = ? "
+            "ORDER BY notifications.created_at DESC LIMIT 30",
+            (user["id"],),
+        ).fetchall()
+        return jsonify(notifications=[dict(row) for row in rows])
+
+    @app.post("/api/notifications/read")
+    @login_required
+    def mark_notifications_read():
+        get_db().execute(
+            "UPDATE notifications SET read_at = ? WHERE recipient_user_id = ? AND read_at IS NULL",
+            (datetime.now(timezone.utc).isoformat(timespec="seconds"), g.current_user["id"]),
+        )
+        get_db().commit()
+        return jsonify(ok=True)
 
     return app
 
@@ -558,11 +698,22 @@ def initialize_database(database_path: str) -> None:
                 status TEXT NOT NULL,
                 created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS notifications (
+                id TEXT PRIMARY KEY,
+                recipient_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                booking_id TEXT REFERENCES bookings(id) ON DELETE SET NULL,
+                event TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                read_at TEXT
+            );
             CREATE INDEX IF NOT EXISTS services_category_idx ON services(category);
             CREATE INDEX IF NOT EXISTS reviews_service_idx ON reviews(service_id);
             CREATE INDEX IF NOT EXISTS bookings_service_idx ON bookings(service_id);
+            CREATE INDEX IF NOT EXISTS notifications_recipient_idx
+                ON notifications(recipient_user_id, read_at);
             """
         )
+        connection.execute("UPDATE services SET currency = 'PKR' WHERE currency <> 'PKR'")
         service_columns = {
             row[1] for row in connection.execute("PRAGMA table_info(services)").fetchall()
         }

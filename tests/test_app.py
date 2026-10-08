@@ -202,6 +202,10 @@ class BackendApiTests(unittest.TestCase):
             f"/api/bookings/{completion_id}", {"status": "completed"}
         )
         self.assertEqual(completion_response.status_code, 200, completion_response.get_json())
+        provider_notifications = self.client.get("/api/notifications").json["notifications"]
+        self.assertGreaterEqual(len(provider_notifications), 1)
+        self.assertEqual(provider_notifications[0]["event"], "booking_received")
+
         archived = self.client.delete(
             f"/api/services/{service['id']}", headers={"X-CSRF-Token": self.csrf_token}
         )
