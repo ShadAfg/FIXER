@@ -30,7 +30,22 @@ service cloud.firestore {
       return resource.data;
     }
 
-    // Validation for contact inquiries
+    function isValidProvider(data) {
+      return data.keys().hasAll(['id', 'name', 'category', 'city', 'phone', 'createdAt']) &&
+        data.name is string && data.name.size() >= 2 && data.name.size() <= 100 &&
+        data.category is string && data.category.size() <= 60 &&
+        data.city is string && data.city.size() <= 60 &&
+        data.phone is string && data.phone.size() >= 7 && data.phone.size() <= 30;
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['id', 'providerId', 'customerName', 'customerPhone', 'jobDetails', 'status', 'createdAt']) &&
+        data.customerName is string && data.customerName.size() >= 2 && data.customerName.size() <= 100 &&
+        data.customerPhone is string && data.customerPhone.size() >= 7 && data.customerPhone.size() <= 30 &&
+        data.jobDetails is string && data.jobDetails.size() >= 5 && data.jobDetails.size() <= 2000 &&
+        data.status is string && data.status in ['requested', 'accepted', 'declined', 'completed'];
+    }
+
     function isValidInquiry(data) {
       return data.keys().hasAll(['name', 'email', 'message', 'status', 'createdAt']) &&
         data.name is string && data.name.size() >= 2 && data.name.size() <= 100 &&
@@ -40,22 +55,34 @@ service cloud.firestore {
         data.createdAt is string && data.createdAt.size() <= 64;
     }
 
+    // Public marketplace providers directory
+    match /providers/{providerId} {
+      allow read: if true;
+      allow create: if isValidId(providerId) && isValidProvider(incoming());
+      allow update: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      allow read: if true;
+      allow create: if isValidId(bookingId) && isValidBooking(incoming());
+      allow update: if isAdmin() || (isSignedIn() && (existing().customerEmail == request.auth.token.email || existing().providerId == request.auth.uid));
+      allow delete: if isAdmin();
+    }
+
+    // Inquiries collection
     match /inquiries/{inquiryId} {
-      // Allow public creation of contact inquiries with strict validation
       allow create: if isValidId(inquiryId) && isValidInquiry(incoming()) && (
         !isSignedIn() || incoming().userId == request.auth.uid
       );
-
-      // Allow users to read their own inquiries, or admin to read all
       allow get: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
       allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-
-      // Only admin can update inquiry status
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
-    // User profile records
+    // User profiles
     match /users/{userId} {
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow list: if isAdmin();
