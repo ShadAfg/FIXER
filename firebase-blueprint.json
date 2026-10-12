@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "Provider": {
+      "title": "Provider",
+      "description": "Skilled craftsman or service provider registered on FIXER Pakistan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "businessName": { "type": "string", "maxLength": 120 },
+        "category": { "type": "string", "maxLength": 60 },
+        "city": { "type": "string", "maxLength": 60 },
+        "area": { "type": "string", "maxLength": 80 },
+        "phone": { "type": "string", "minLength": 7, "maxLength": 30 },
+        "whatsapp": { "type": "string", "maxLength": 30 },
+        "experienceYears": { "type": "string", "maxLength": 30 },
+        "basePrice": { "type": "string", "maxLength": 50 },
+        "rating": { "type": "string", "maxLength": 10 },
+        "reviewCount": { "type": "string", "maxLength": 10 },
+        "isVerified": { "type": "string", "maxLength": 10 },
+        "isEmergencyAvailable": { "type": "string", "maxLength": 10 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "photoUrl": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "name", "category", "city", "phone", "createdAt"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Customer service booking request with a provider on FIXER",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "providerId": { "type": "string", "maxLength": 128 },
+        "providerName": { "type": "string", "maxLength": 100 },
+        "providerCategory": { "type": "string", "maxLength": 60 },
+        "customerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "customerEmail": { "type": "string", "maxLength": 150 },
+        "customerPhone": { "type": "string", "minLength": 7, "maxLength": 30 },
+        "city": { "type": "string", "maxLength": 60 },
+        "area": { "type": "string", "maxLength": 80 },
+        "preferredDate": { "type": "string", "maxLength": 50 },
+        "preferredTime": { "type": "string", "maxLength": 50 },
+        "jobDetails": { "type": "string", "minLength": 5, "maxLength": 2000 },
+        "isUrgent": { "type": "string", "maxLength": 10 },
+        "status": {
+          "type": "string",
+          "enum": ["requested", "accepted", "declined", "completed"]
+        },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "providerId", "customerName", "customerPhone", "jobDetails", "status", "createdAt"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Customer inquiry or support ticket submitted to FIXER",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 150 },
+        "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "email": { "type": "string", "minLength": 5, "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "category": { "type": "string", "maxLength": 60 },
+        "city": { "type": "string", "maxLength": 60 },
+        "subject": { "type": "string", "maxLength": 150 },
+        "message": { "type": "string", "minLength": 10, "maxLength": 3000 },
+        "status": { "type": "string", "enum": ["pending", "in-review", "resolved"] },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["name", "email", "message", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 150 },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/providers/{providerId}": {
+      "schema": "Provider",
+      "description": "Verified craftsmen and service providers in Pakistan"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Marketplace booking requests between customers and providers"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "General inquiries and contact form submissions"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and metadata"
+    }
+  }
+}
