@@ -1,0 +1,113 @@
+{
+  "entities": {
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Customer inquiry or support request sent through the FIXER contact form",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the inquiry",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user who submitted the inquiry (or 'guest')",
+          "maxLength": 128
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Authenticated user's email address if signed in",
+          "maxLength": 150
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the person submitting inquiry",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Contact email address",
+          "minLength": 5,
+          "maxLength": 150
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone or WhatsApp number",
+          "maxLength": 30
+        },
+        "category": {
+          "type": "string",
+          "description": "Service category or inquiry type",
+          "maxLength": 60
+        },
+        "city": {
+          "type": "string",
+          "description": "City or area in Pakistan",
+          "maxLength": 60
+        },
+        "message": {
+          "type": "string",
+          "description": "Detailed inquiry message text",
+          "minLength": 10,
+          "maxLength": 3000
+        },
+        "status": {
+          "type": "string",
+          "description": "Workflow status of the inquiry",
+          "enum": ["pending", "in-review", "resolved"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp or server timestamp string of inquiry creation",
+          "maxLength": 64
+        }
+      },
+      "required": ["name", "email", "message", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User account profile record for signed in FIXER users",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 150
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 120
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar profile photo URL",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of account creation",
+          "maxLength": 64
+        }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Customer contact submissions and service inquiries"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and metadata"
+    }
+  }
+}

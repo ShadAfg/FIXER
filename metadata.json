@@ -1,0 +1,6 @@
+{
+  "name": "FIXER - Contact & Inquiries",
+  "description": "Responsive inquiry and contact system for FIXER (fixer-pak.netlify.app) with Firebase Auth and Firestore data persistence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
